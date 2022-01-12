@@ -1,0 +1,14 @@
+
+
+menuconfig IMLIB_ENABLED
+    bool "Enable imlib"
+    default y
+    menu "Imlib configuration"
+        visible if IMLIB_ENABLED
+        config IMLIB_ENABLE_FLOOD_FILL
+            bool "IMLIB_ENABLE_FLOOD_FILL"
+            default n
+            depends on IMLIB_ENABLED
+            help
+                enable IMLIB_ENABLE_FLOOD_FILL FUN!
+    endmenu
