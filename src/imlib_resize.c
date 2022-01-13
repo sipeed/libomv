@@ -1,40 +1,121 @@
-#include <stdint.h>
-// *********************************************************************
-// * 函数名称: BspDouToFix
-// * 功能描述: 将指定的浮点数 转化为 定点数
-// * 算法描述: 无
-// * 输入参数:  ucType 0表示无符号 1表示有符号
-// *           ucInteger 表示整数占几个bit
-// *           ucdecimal 表示小数占几个bit
-// *           dbDou 为待转化的浮点数
-// * 输出参数: 无
-// * 返 回 值: 转化后的定点数
-// *********************************************************************
+// #include <stdint.h>
+// // *********************************************************************
+// // * 函数名称: BspDouToFix
+// // * 功能描述: 将指定的浮点数 转化为 定点数
+// // * 算法描述: 无
+// // * 输入参数:  ucType 0表示无符号 1表示有符号
+// // *           ucInteger 表示整数占几个bit
+// // *           ucdecimal 表示小数占几个bit
+// // *           dbDou 为待转化的浮点数
+// // * 输出参数: 无
+// // * 返 回 值: 转化后的定点数
+// // *********************************************************************
 
-#define VOID void
-#define UCHAR int
-#define DOUBLE double
-#define UINT64 uint64_t
+// #define VOID void
+// #define UCHAR int
+// #define DOUBLE double
+// #define UINT64 uint64_t
  
-VOID BspDouToFix(UCHAR ucType, UCHAR ucInteger, UCHAR ucdecimal, DOUBLE dbDou, UINT64 *pllfix)
-{
-    UINT64 lltemp = 0;
-    DOUBLE dbtemp = 0;
+// VOID BspDouToFix(UCHAR ucType, UCHAR ucInteger, UCHAR ucdecimal, DOUBLE dbDou, UINT64 *pllfix)
+// {
+//     UINT64 lltemp = 0;
+//     DOUBLE dbtemp = 0;
      
-    dbtemp = dbDou;
-    if(dbtemp < 0) /* 有符号正数 或者 无符号数 */
-    {
-        lltemp = (UINT64)(-dbDou*(1<<ucdecimal));
-        *pllfix = (UINT64)((UINT64)(1)<<(ucType + ucInteger + ucdecimal)) -    lltemp;    
-    }
-    else if(dbtemp > 0)   /* 有符号负数 */
-        {
-            *pllfix = (UINT64)(dbDou * (1<<ucdecimal));
-        }
-        else
-        {
-            *pllfix = 0;
-        }
+//     dbtemp = dbDou;
+//     if(dbtemp < 0) /* 有符号正数 或者 无符号数 */
+//     {
+//         lltemp = (UINT64)(-dbDou*(1<<ucdecimal));
+//         *pllfix = (UINT64)((UINT64)(1)<<(ucType + ucInteger + ucdecimal)) -    lltemp;    
+//     }
+//     else if(dbtemp > 0)   /* 有符号负数 */
+//         {
+//             *pllfix = (UINT64)(dbDou * (1<<ucdecimal));
+//         }
+//         else
+//         {
+//             *pllfix = 0;
+//         }
+// }
+
+#include "imlib.h"
+
+void imlib_image_resize(image_t *src, image_t *dst, int hist)
+{
+	int x = 0, y = 0;
+	if (hist & IMAGE_HINT_AREA)	//临近插值
+	{
+		switch (src->pixfmt)
+		{
+		case PIXFORMAT_BINARY:
+		{
+			for (y = 0; y < dst->h; y++)
+			{
+				uint32_t *dst32 = IMAGE_COMPUTE_BINARY_PIXEL_ROW_PTR(dst, y);
+				int tmp_y = y / dst->h * src->h;
+				uint32_t *src32 = IMAGE_COMPUTE_BINARY_PIXEL_ROW_PTR(src, tmp_y);
+				for (x = 0; x < dst->w; x++)
+				{
+					int tmp_x = x / dst->w * src->w;
+					IMAGE_PUT_BINARY_PIXEL_FAST(dst32, x, IMAGE_GET_BINARY_PIXEL_FAST(src32, tmp_x));
+				}
+			}
+			break;
+		}
+		case PIXFORMAT_GRAYSCALE:
+		{
+			for (y = 0; y < dst->h; y++)
+			{
+				uint8_t *dst8 = IMAGE_COMPUTE_GRAYSCALE_PIXEL_ROW_PTR(dst, y);
+				int tmp_y = y / dst->h * src->h;
+				uint8_t *src8 = IMAGE_COMPUTE_GRAYSCALE_PIXEL_ROW_PTR(src, tmp_y);
+				for (x = 0; x < dst->w; x++)
+				{
+					int tmp_x = x / dst->w * src->w;
+					IMAGE_PUT_GRAYSCALE_PIXEL_FAST(dst8, x, IMAGE_GET_GRAYSCALE_PIXEL_FAST(src8, tmp_x));
+				}
+			}
+			break;
+		}
+		case PIXFORMAT_RGB565:
+		{
+			for (y = 0; y < dst->h; y++)
+			{
+				uint16_t *dst16 = IMAGE_COMPUTE_RGB565_PIXEL_ROW_PTR(dst, y);
+				int tmp_y = y / dst->h * src->h;
+				uint16_t *src16 = IMAGE_COMPUTE_RGB565_PIXEL_ROW_PTR(src, tmp_y);
+				for (x = 0; x < dst->w; x++)
+				{
+					int tmp_x = x / dst->w * src->w;
+					IMAGE_PUT_RGB565_PIXEL_FAST(dst16, x, IMAGE_GET_RGB565_PIXEL_FAST(src16, tmp_x));
+				}
+			}
+			break;
+		}
+		case PIXFORMAT_RGB888:
+		{
+			for (y = 0; y < dst->h; y++)
+			{
+				pixel24_t *dst24 = IMAGE_COMPUTE_RGB888_PIXEL_ROW_PTR(dst, y);
+				int tmp_y = y / dst->h * src->h;
+				pixel24_t *src24 = IMAGE_COMPUTE_RGB888_PIXEL_ROW_PTR(src, tmp_y);
+				for (x = 0; x < dst->w; x++)
+				{
+					int tmp_x = x / dst->w * src->w;
+					IMAGE_PUT_RGB888_PIXEL_FAST(dst24, x, IMAGE_GET_RGB888_PIXEL_FAST(src24, tmp_x));
+				}
+			}
+			break;
+		}
+		default:
+		{
+			return ;
+		}
+		}
+	}else if(hist & IMAGE_HINT_BILINEAR){ //双线性缩放
+
+	}else if(hist & IMAGE_HINT_BICUBIC){  //三线型缩放
+
+	}
 }
 
 /*
@@ -59,10 +140,7 @@ void imlib_image_resize_BICUBIC()
 
 
 
-void imlib_image_resize(image_t *src, image_t *dst, int w, int h, int type)
-{
 
-}
 
 
 
