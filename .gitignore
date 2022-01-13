@@ -53,3 +53,4 @@ dkms.conf
 .vscode-ctags
 *tempCodeRunnerFile.c
 examples/*/build
+test/tmp.*
