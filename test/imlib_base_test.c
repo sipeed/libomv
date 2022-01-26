@@ -227,10 +227,11 @@ void find_cricle(image_t *img_ts)
 
 int main()
 {
-    image_t *img_ts = imlib_image_create(240, 240, PIXFORMAT_BINARY, 0, NULL, false);
     imlib_init_all();
+    image_t *img_ts = imlib_image_create(240, 240, PIXFORMAT_BINARY, 0, NULL, false);
+    
 #ifdef _888_e
-                                    bmp_read(img_ts, "../../assets/image/888.bmp");
+    bmp_read(img_ts, "../../assets/image/888.bmp");
     imlib_draw_line(img_ts, 10, 10, 10, 100,        COLOR_R8_G8_B8_TO_RGB888(0xff, 0x00, 0x00), 4);
     imlib_draw_line(img_ts, 20, 10, 20, 100,        COLOR_R8_G8_B8_TO_RGB888(0x00, 0xff, 0x00), 4);
     imlib_draw_line(img_ts, 30, 10, 30, 100,        COLOR_R8_G8_B8_TO_RGB888(0x00, 0x00, 0xff), 4);
@@ -240,7 +241,7 @@ int main()
     imlib_draw_circle(img_ts, 70, 100, 20,          COLOR_R8_G8_B8_TO_RGB888(0x00, 0x00, 0xff), 2, true);
     imlib_draw_string(img_ts, 70, 150, "nihao",     COLOR_R8_G8_B8_TO_RGB888(0x00, 0x00, 0xff), 3.0, 0, 0, 1, 0, 0, 0, 0, 0, 0);
 #else
-                                    bmp_read(img_ts, "./565.bmp");
+    bmp_read(img_ts, "./565.bmp");
     imlib_draw_line(img_ts, 10, 10, 10, 100,        COLOR_R8_G8_B8_TO_RGB565(0xff, 0x00, 0x00), 4);
     imlib_draw_line(img_ts, 20, 10, 20, 100,        COLOR_R8_G8_B8_TO_RGB565(0x00, 0xff, 0x00), 4);
     imlib_draw_line(img_ts, 30, 10, 30, 100,        COLOR_R8_G8_B8_TO_RGB565(0x00, 0x00, 0xff), 4);
@@ -251,13 +252,19 @@ int main()
     imlib_draw_string(img_ts, 70, 150, "nihao",     COLOR_R8_G8_B8_TO_RGB565(0x00, 0x00, 0xff), 3.0, 0, 0, 1, 0, 0, 0, 0, 0, 0);
 #endif
 // (44, 80, 10, 110, -49, 115)
-    find_blobs(img_ts);
+    // find_blobs(img_ts);
 
-    find_lines(img_ts);
+    // find_lines(img_ts);
 
-    find_cricle(img_ts);
-    
+    // find_cricle(img_ts);
+
+    image_t *img_big = imlib_image_create(320, 320, PIXFORMAT_RGB565, 0, NULL, true);
+
+    imlib_image_resize(img_big, img_ts, IMAGE_HINT_BILINEAR);
+
+    bmp_write_subimg(img_big, "./tmp_img_big.bmp",NULL);
     bmp_write_subimg(img_ts, "./tmp.bmp",NULL);
+    imlib_image_destroy(&img_big);
     imlib_image_destroy(&img_ts);
     imlib_deinit_all();
     printf("hello\n");

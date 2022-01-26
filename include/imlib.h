@@ -1271,7 +1271,7 @@ void imlib_deinit_all();
 
 //imlib base operation
 void imlib_pixfmt_to(image_t *dst, image_t *src, rectangle_t *roi);
-void imlib_image_resize(image_t *src, image_t *dst, int hist);
+void imlib_image_resize(image_t *dst, image_t *src, int hist);
 
 // Generic Helper Functions
 void imlib_fill_image_from_float(image_t *img, int w, int h, float *data, float min, float max,
