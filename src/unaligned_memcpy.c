@@ -4,7 +4,12 @@
 #include "arm_compat.h"
 #include "unaligned_memcpy.h"
 #define __REV16(_x) __builtin_bswap16(_x)
-#define __ARM_ARCH 0
+
+
+#ifdef __ARM_ARCH
+#undef __ARM_ARCH
+#endif
+
 // ARM Cortex-M4/M7 Processors can access memory using unaligned 32-bit reads/writes.
 void *unaligned_memcpy(void *dest, void *src, size_t n)
 {
@@ -76,4 +81,3 @@ void *unaligned_2_to_1_memcpy(void *dest, void *src, size_t n)
 
     return dest;
 }
-#undef __ARM_ARCH

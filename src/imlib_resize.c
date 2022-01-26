@@ -344,7 +344,7 @@ void imlib_image_resize(image_t *dst, image_t *src, int hist)
 			}
 		}
 
-	}else if(hist & IMAGE_HINT_BICUBIC){  //三线型缩放
+	}else if(hist & IMAGE_HINT_BICUBIC){  //三线性缩放
         // +---+---+---+---+
         // | x | x | x | x |
         // +---+---+---+---+

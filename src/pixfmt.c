@@ -1,8 +1,18 @@
 #include "imlib.h"
 
 
-void imlib_pixfmt_to(image_t *dst, image_t *src, rectangle_t *roi)
+void imlib_pixfmt_to(image_t *dst, image_t *src, rectangle_t *roi_i)
 {
+    rectangle_t *roi, tmp_roi;
+    if(roi_i == NULL){
+        roi = &tmp_roi;
+        roi->x = 0;
+        roi->y = 0;
+        roi->w = dst->w;
+        roi->h = dst->h;
+    }else{
+        roi = roi_i;
+    }
     switch (src->pixfmt)
     {
     case PIXFORMAT_BINARY:
