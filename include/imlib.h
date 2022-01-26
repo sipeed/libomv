@@ -832,11 +832,26 @@ bool image_get_mask_pixel(image_t *ptr, int x, int y);
     ((pixel24_t *) _image->data) + (_image->w * _y); \
 })
 
+#define IMAGE_GET_RGB888_PIXEL_FAST_(row_ptr, x) \
+({ \
+    __typeof__ (row_ptr) _row_ptr = (row_ptr); \
+    __typeof__ (x) _x = (x); \
+    _row_ptr[_x]; \
+})
+
 #define IMAGE_GET_RGB888_PIXEL_FAST(row_ptr, x) \
 ({ \
     __typeof__ (row_ptr) _row_ptr = (row_ptr); \
     __typeof__ (x) _x = (x); \
     pixel24232(_row_ptr[_x]); \
+})
+
+#define IMAGE_PUT_RGB888_PIXEL_FAST_(row_ptr, x, v) \
+({ \
+    __typeof__ (row_ptr) _row_ptr = (row_ptr); \
+    __typeof__ (x) _x = (x); \
+    __typeof__ (v) _v = (v); \
+    _row_ptr[_x] = _v; \
 })
 
 #define IMAGE_PUT_RGB888_PIXEL_FAST(row_ptr, x, v) \

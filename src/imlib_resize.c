@@ -39,114 +39,393 @@
 
 #include "imlib.h"
 
+
+float F_BiCubic(float x){
+	float w = abs(x);
+	if(w < 1){
+		return (1 - 2 * (w ** 2)  +  (w ** 3));
+	}
+	else if(w < 2){
+		return (4 - 8 * w + 5 * (w ** 2) - (w ** 3));
+	}
+	else{
+		return 0;
+	}
+}
+/**
+ * @brief 
+ * 
+ * @param src 
+ * @param dst 
+ * @param hist 
+ * 双线型插值算法
+ * https://blog.csdn.net/qq_37577735/article/details/80041586
+ */
 void imlib_image_resize(image_t *src, image_t *dst, int hist)
 {
-	int x = 0, y = 0;
+	#define GET_SITE_PIXEL_FAST(index, scale) \
+	({ \
+		__typeof__ (index) _index = (index); \
+		__typeof__ (scale) _scale = (scale); \
+		fast_roundf(_index * _scale);\
+	})
+
+	int dst_x_index = 0, dst_y_index = 0;
+	int src_x_index = 0, src_y_index = 0;
+	float h_scale = src->h / dst->h;
+	float w_scale = src->w / dst->w;
+
 	if (hist & IMAGE_HINT_AREA)	//临近插值
 	{
 		switch (src->pixfmt)
 		{
-		case PIXFORMAT_BINARY:
-		{
-			for (y = 0; y < dst->h; y++)
+		case PIXFORMAT_BINARY:{
+			uint32_t *dst32, *src32;
+			for (dst_y_index = 0; dst_y_index < dst->h; dst_y_index ++)
 			{
-				uint32_t *dst32 = IMAGE_COMPUTE_BINARY_PIXEL_ROW_PTR(dst, y);
-				int tmp_y = y / dst->h * src->h;
-				uint32_t *src32 = IMAGE_COMPUTE_BINARY_PIXEL_ROW_PTR(src, tmp_y);
-				for (x = 0; x < dst->w; x++)
+				dst32 = IMAGE_COMPUTE_BINARY_PIXEL_ROW_PTR(dst, dst_y_index);
+				src_y_index = GET_SITE_PIXEL_FAST(dst_y_index, h_scale);
+				src32 = IMAGE_COMPUTE_BINARY_PIXEL_ROW_PTR(src, src_y_index);
+				for (dst_x_index = 0; dst_x_index < dst->w; dst_x_index ++)
 				{
-					int tmp_x = x / dst->w * src->w;
-					IMAGE_PUT_BINARY_PIXEL_FAST(dst32, x, IMAGE_GET_BINARY_PIXEL_FAST(src32, tmp_x));
+					src_x_index = GET_SITE_PIXEL_FAST(dst_x_index, w_scale);
+					IMAGE_PUT_BINARY_PIXEL_FAST(dst32, dst_x_index, IMAGE_GET_BINARY_PIXEL_FAST(src32, src_x_index));
 				}
 			}
 			break;
 		}
-		case PIXFORMAT_GRAYSCALE:
-		{
-			for (y = 0; y < dst->h; y++)
+		case PIXFORMAT_GRAYSCALE:{
+			uint8_t *dst8, *src8;
+			for (dst_y_index = 0; dst_y_index < dst->h; dst_y_index ++)
 			{
-				uint8_t *dst8 = IMAGE_COMPUTE_GRAYSCALE_PIXEL_ROW_PTR(dst, y);
-				int tmp_y = y / dst->h * src->h;
-				uint8_t *src8 = IMAGE_COMPUTE_GRAYSCALE_PIXEL_ROW_PTR(src, tmp_y);
-				for (x = 0; x < dst->w; x++)
+				dst8 = IMAGE_COMPUTE_GRAYSCALE_PIXEL_ROW_PTR(dst, dst_y_index);
+				src_y_index = GET_SITE_PIXEL_FAST(dst_y_index, h_scale);
+				src8 = IMAGE_COMPUTE_GRAYSCALE_PIXEL_ROW_PTR(src, src_y_index);
+				for (dst_x_index = 0; dst_x_index < dst->w; dst_x_index ++)
 				{
-					int tmp_x = x / dst->w * src->w;
-					IMAGE_PUT_GRAYSCALE_PIXEL_FAST(dst8, x, IMAGE_GET_GRAYSCALE_PIXEL_FAST(src8, tmp_x));
+					int src_x_index = GET_SITE_PIXEL_FAST(dst_x_index, w_scale);
+					IMAGE_PUT_GRAYSCALE_PIXEL_FAST(dst8, dst_x_index, IMAGE_GET_GRAYSCALE_PIXEL_FAST(src8, src_x_index));
 				}
 			}
 			break;
 		}
-		case PIXFORMAT_RGB565:
-		{
-			for (y = 0; y < dst->h; y++)
+		case PIXFORMAT_RGB565:{
+			uint16_t *dst16, *src16;
+			for (dst_y_index = 0; dst_y_index < dst->h; dst_y_index ++)
 			{
-				uint16_t *dst16 = IMAGE_COMPUTE_RGB565_PIXEL_ROW_PTR(dst, y);
-				int tmp_y = y / dst->h * src->h;
-				uint16_t *src16 = IMAGE_COMPUTE_RGB565_PIXEL_ROW_PTR(src, tmp_y);
-				for (x = 0; x < dst->w; x++)
+				dst16 = IMAGE_COMPUTE_RGB565_PIXEL_ROW_PTR(dst, dst_y_index);
+				src_y_index = GET_SITE_PIXEL_FAST(dst_y_index, h_scale);
+				src16 = IMAGE_COMPUTE_RGB565_PIXEL_ROW_PTR(src, src_y_index);
+				for (dst_x_index = 0; dst_x_index < dst->w; dst_x_index ++)
 				{
-					int tmp_x = x / dst->w * src->w;
-					IMAGE_PUT_RGB565_PIXEL_FAST(dst16, x, IMAGE_GET_RGB565_PIXEL_FAST(src16, tmp_x));
+					src_x_index = GET_SITE_PIXEL_FAST(dst_x_index, w_scale);
+					IMAGE_PUT_RGB565_PIXEL_FAST(dst16, dst_x_index, IMAGE_GET_RGB565_PIXEL_FAST(src16, src_x_index));
 				}
 			}
 			break;
 		}
-		case PIXFORMAT_RGB888:
-		{
-			for (y = 0; y < dst->h; y++)
+		case PIXFORMAT_RGB888:{
+			pixel24_t *dst24, *src24;
+			for (dst_y_index = 0; dst_y_index < dst->h; dst_y_index ++)
 			{
-				pixel24_t *dst24 = IMAGE_COMPUTE_RGB888_PIXEL_ROW_PTR(dst, y);
-				int tmp_y = y / dst->h * src->h;
-				pixel24_t *src24 = IMAGE_COMPUTE_RGB888_PIXEL_ROW_PTR(src, tmp_y);
-				for (x = 0; x < dst->w; x++)
+				dst24 = IMAGE_COMPUTE_RGB888_PIXEL_ROW_PTR(dst, dst_y_index);
+				src_y_index = GET_SITE_PIXEL_FAST(dst_y_index, h_scale);
+				src24 = IMAGE_COMPUTE_RGB888_PIXEL_ROW_PTR(src, src_y_index);
+				for (dst_x_index = 0; dst_x_index < dst->w; dst_x_index ++)
 				{
-					int tmp_x = x / dst->w * src->w;
-					IMAGE_PUT_RGB888_PIXEL_FAST(dst24, x, IMAGE_GET_RGB888_PIXEL_FAST(src24, tmp_x));
+					src_x_index = GET_SITE_PIXEL_FAST(dst_x_index, w_scale);
+					IMAGE_PUT_RGB888_PIXEL_FAST_(dst24, dst_x_index, IMAGE_GET_RGB888_PIXEL_FAST_(src24, src_x_index));
 				}
 			}
 			break;
 		}
 		default:
 		{
-			return ;
+			return;
 		}
 		}
 	}else if(hist & IMAGE_HINT_BILINEAR){ //双线性缩放
+        // +---+---+
+        // | C | x |
+        // +---+---+
+        // | x | x |
+        // +---+---+
+		switch (src->pixfmt){
+			case PIXFORMAT_BINARY:{
+				int src_x_index, src_y_index;
+				uint32_t *dst32, *src32;
+				for (dst_y_index = 0; dst_y_index < dst->h; dst_y_index ++)
+				{
+					dst32 = IMAGE_COMPUTE_BINARY_PIXEL_ROW_PTR(dst, dst_y_index);
+					src_y_index = GET_SITE_PIXEL_FAST(dst_y_index, h_scale);
+					src32 = IMAGE_COMPUTE_BINARY_PIXEL_ROW_PTR(src, src_y_index);
+					for (dst_x_index = 0; dst_x_index < dst->w; dst_x_index ++)
+					{
+						src_x_index = GET_SITE_PIXEL_FAST(dst_x_index, w_scale);
+						IMAGE_PUT_BINARY_PIXEL_FAST(dst32, dst_x_index, IMAGE_GET_BINARY_PIXEL_FAST(src32, src_x_index));
+					}
+				}
+				break;
+			}
+			case PIXFORMAT_GRAYSCALE:{
+				
+				uint8_t *src_row_ptr_0, *src_row_ptr_1;
+				int w_limit = src->w - 2;
+				int h_limit = src->h - 2;
+				for (dst_y_index = 0; dst_y_index < dst->h; ++ dst_y_index){
+					uint8_t *dst_row_ptr = IMAGE_COMPUTE_GRAYSCALE_PIXEL_ROW_PTR(dst, dst_y_index);
+					float f_src_y_index = (float)((dst_y_index + 0.5) * h_scale - 0.5);
+					src_y_index = fast_floorf(f_src_y_index);
+					f_src_y_index = f_src_y_index - src_y_index;
+					
+					if(src_y_index <= 0)
+					{
+						src_row_ptr_0 = src_row_ptr_1 = IMAGE_COMPUTE_GRAYSCALE_PIXEL_ROW_PTR(src, 0);
+					}
+					else if(src_y_index >= h_limit)
+					{
+						src_row_ptr_0 = src_row_ptr_1 = IMAGE_COMPUTE_GRAYSCALE_PIXEL_ROW_PTR(src, h_limit);
+					}
+					else
+					{
+                        int src_y_index_p_1 = src_y_index + 1;
+                        src_row_ptr_0 = IMAGE_COMPUTE_GRAYSCALE_PIXEL_ROW_PTR(src, src_y_index);
+                        src_row_ptr_1 = IMAGE_COMPUTE_GRAYSCALE_PIXEL_ROW_PTR(src, src_y_index_p_1);
+					}
+					short cbufy[2];									
+					cbufy[0] = IM_MAX(IM_MIN((1.f - f_src_y_index) * 2048, 2048), 0);	
+					cbufy[1] = 2048 - cbufy[0];								
+
+					for (dst_x_index = 0; dst_x_index < dst->w; ++ dst_x_index){
+						float f_src_x_index = (float)((dst_x_index + 0.5) * w_scale - 0.5);
+						src_x_index = fast_floorf(f_src_x_index);
+						f_src_x_index = f_src_x_index - src_x_index;
+
+						short cbufx[2];									
+						cbufx[0] = IM_MAX(IM_MIN((1.f - f_src_x_index) * 2048, 2048), 0);	
+						cbufx[1] = 2048 - cbufy[0];	
+						int pixel_00, pixel_10, pixel_01, pixel_11;
+						
+						if (src_x_index < 0) {
+							pixel_00 = pixel_10 = src_row_ptr_0[0];
+							pixel_01 = pixel_11 = src_row_ptr_1[0];
+						} else if (src_x_index >= (src->w - 2)) {
+							pixel_00 = pixel_10 = src_row_ptr_0[w_limit];
+							pixel_01 = pixel_11 = src_row_ptr_1[w_limit];
+						} else { // get 4 neighboring pixels
+							int src_x_index_p_1 = src_x_index + 1;
+							pixel_00 = src_row_ptr_0[src_x_index]; pixel_10 = src_row_ptr_0[src_x_index_p_1];
+							pixel_01 = src_row_ptr_1[src_x_index]; pixel_11 = src_row_ptr_1[src_x_index_p_1];
+						}
+						int pixel = (pixel_00 * cbufx[0] * cbufy[0] +
+									 pixel_01 * cbufx[0] * cbufy[1] + 
+									 pixel_10 * cbufx[1] * cbufy[0] + 
+									 pixel_11 * cbufx[1] * cbufy[1]) >> 22;
+
+						IMAGE_PUT_GRAYSCALE_PIXEL_FAST(dst_row_ptr, dst_x_index, pixel);
+					}
+				}
+
+				break;
+			}
+			case PIXFORMAT_RGB565:{
+				uint16_t *src_row_ptr_0, *src_row_ptr_1;
+				int w_limit = src->w - 2;
+				int h_limit = src->h - 2;
+				for (dst_y_index = 0; dst_y_index < dst->h; ++ dst_y_index){
+					uint16_t *dst_row_ptr = IMAGE_COMPUTE_GRAYSCALE_PIXEL_ROW_PTR(dst, dst_y_index);
+					float f_src_y_index = (float)((dst_y_index + 0.5) * h_scale - 0.5);
+					src_y_index = fast_floorf(f_src_y_index);
+					f_src_y_index = f_src_y_index - src_y_index;
+					
+					if(src_y_index <= 0)
+					{
+						src_row_ptr_0 = src_row_ptr_1 = IMAGE_COMPUTE_GRAYSCALE_PIXEL_ROW_PTR(src, 0);
+					}
+					else if(src_y_index >= h_limit)
+					{
+						src_row_ptr_0 = src_row_ptr_1 = IMAGE_COMPUTE_GRAYSCALE_PIXEL_ROW_PTR(src, h_limit);
+					}
+					else
+					{
+                        int src_y_index_p_1 = src_y_index + 1;
+                        src_row_ptr_0 = IMAGE_COMPUTE_GRAYSCALE_PIXEL_ROW_PTR(src, src_y_index);
+                        src_row_ptr_1 = IMAGE_COMPUTE_GRAYSCALE_PIXEL_ROW_PTR(src, src_y_index_p_1);
+					}
+					short cbufy[2];									
+					cbufy[0] = IM_MAX(IM_MIN((1.f - f_src_y_index) * 2048, 2048), 0);	
+					cbufy[1] = 2048 - cbufy[0];								
+
+					for (dst_x_index = 0; dst_x_index < dst->w; ++ dst_x_index){
+						float f_src_x_index = (float)((dst_x_index + 0.5) * w_scale - 0.5);
+						src_x_index = fast_floorf(f_src_x_index);
+						f_src_x_index = f_src_x_index - src_x_index;
+
+						short cbufx[2];									
+						cbufx[0] = IM_MAX(IM_MIN((1.f - f_src_x_index) * 2048, 2048), 0);	
+						cbufx[1] = 2048 - cbufy[0];	
+						uint16_t pixel_00, pixel_10, pixel_01, pixel_11;
+						
+						if (src_x_index < 0) {
+							pixel_00 = pixel_10 = src_row_ptr_0[0];
+							pixel_01 = pixel_11 = src_row_ptr_1[0];
+						} else if (src_x_index >= (src->w - 2)) {
+							pixel_00 = pixel_10 = src_row_ptr_0[w_limit];
+							pixel_01 = pixel_11 = src_row_ptr_1[w_limit];
+						} else { // get 4 neighboring pixels
+							int src_x_index_p_1 = src_x_index + 1;
+							pixel_00 = src_row_ptr_0[src_x_index]; pixel_10 = src_row_ptr_0[src_x_index_p_1];
+							pixel_01 = src_row_ptr_1[src_x_index]; pixel_11 = src_row_ptr_1[src_x_index_p_1];
+						}
+						
+						int pixel_r = (COLOR_RGB565_TO_R8(pixel_00) * cbufx[0] * cbufy[0] +
+									   COLOR_RGB565_TO_R8(pixel_01) * cbufx[0] * cbufy[1] + 
+									   COLOR_RGB565_TO_R8(pixel_10) * cbufx[1] * cbufy[0] + 
+									   COLOR_RGB565_TO_R8(pixel_11) * cbufx[1] * cbufy[1]) >> 22;
+
+						int pixel_g = (COLOR_RGB565_TO_G8(pixel_00) * cbufx[0] * cbufy[0] +
+									   COLOR_RGB565_TO_G8(pixel_01) * cbufx[0] * cbufy[1] + 
+									   COLOR_RGB565_TO_G8(pixel_10) * cbufx[1] * cbufy[0] + 
+									   COLOR_RGB565_TO_G8(pixel_11) * cbufx[1] * cbufy[1]) >> 22;
+
+						int pixel_b = (COLOR_RGB565_TO_B8(pixel_00) * cbufx[0] * cbufy[0] +
+									   COLOR_RGB565_TO_B8(pixel_01) * cbufx[0] * cbufy[1] + 
+									   COLOR_RGB565_TO_B8(pixel_10) * cbufx[1] * cbufy[0] + 
+									   COLOR_RGB565_TO_B8(pixel_11) * cbufx[1] * cbufy[1]) >> 22;
+
+						IMAGE_PUT_RGB565_PIXEL_FAST(dst_row_ptr, dst_x_index, COLOR_R8_G8_B8_TO_RGB565(pixel_r, pixel_g, pixel_b));
+					}
+				}
+
+				break;
+			}
+			case PIXFORMAT_RGB888:{
+				pixel24_t *src_row_ptr_0, *src_row_ptr_1;
+				int w_limit = src->w - 2;
+				int h_limit = src->h - 2;
+				for (dst_y_index = 0; dst_y_index < dst->h; ++ dst_y_index){
+					pixel24_t *dst_row_ptr = IMAGE_COMPUTE_GRAYSCALE_PIXEL_ROW_PTR(dst, dst_y_index);
+					float f_src_y_index = (float)((dst_y_index + 0.5) * h_scale - 0.5);
+					src_y_index = fast_floorf(f_src_y_index);
+					f_src_y_index = f_src_y_index - src_y_index;
+					
+					if(src_y_index <= 0)
+					{
+						src_row_ptr_0 = src_row_ptr_1 = IMAGE_COMPUTE_GRAYSCALE_PIXEL_ROW_PTR(src, 0);
+					}
+					else if(src_y_index >= h_limit)
+					{
+						src_row_ptr_0 = src_row_ptr_1 = IMAGE_COMPUTE_GRAYSCALE_PIXEL_ROW_PTR(src, h_limit);
+					}
+					else
+					{
+                        int src_y_index_p_1 = src_y_index + 1;
+                        src_row_ptr_0 = IMAGE_COMPUTE_GRAYSCALE_PIXEL_ROW_PTR(src, src_y_index);
+                        src_row_ptr_1 = IMAGE_COMPUTE_GRAYSCALE_PIXEL_ROW_PTR(src, src_y_index_p_1);
+					}
+					short cbufy[2];									
+					cbufy[0] = IM_MAX(IM_MIN((1.f - f_src_y_index) * 2048, 2048), 0);	
+					cbufy[1] = 2048 - cbufy[0];								
+
+					for (dst_x_index = 0; dst_x_index < dst->w; ++ dst_x_index){
+						float f_src_x_index = (float)((dst_x_index + 0.5) * w_scale - 0.5);
+						src_x_index = fast_floorf(f_src_x_index);
+						f_src_x_index = f_src_x_index - src_x_index;
+
+						short cbufx[2];									
+						cbufx[0] = IM_MAX(IM_MIN((1.f - f_src_x_index) * 2048, 2048), 0);	
+						cbufx[1] = 2048 - cbufy[0];	
+						pixel24_t pixel_00, pixel_10, pixel_01, pixel_11;
+						
+						if (src_x_index < 0) {
+							pixel_00 = pixel_10 = src_row_ptr_0[0];
+							pixel_01 = pixel_11 = src_row_ptr_1[0];
+						} else if (src_x_index >= (src->w - 2)) {
+							pixel_00 = pixel_10 = src_row_ptr_0[w_limit];
+							pixel_01 = pixel_11 = src_row_ptr_1[w_limit];
+						} else { // get 4 neighboring pixels
+							int src_x_index_p_1 = src_x_index + 1;
+							pixel_00 = src_row_ptr_0[src_x_index]; pixel_10 = src_row_ptr_0[src_x_index_p_1];
+							pixel_01 = src_row_ptr_1[src_x_index]; pixel_11 = src_row_ptr_1[src_x_index_p_1];
+						}
+
+						int pixel_r = (pixel_00.red * cbufx[0] * cbufy[0] +
+									   pixel_01.red * cbufx[0] * cbufy[1] + 
+									   pixel_10.red * cbufx[1] * cbufy[0] + 
+									   pixel_11.red * cbufx[1] * cbufy[1]) >> 22;
+						int pixel_g = (pixel_00.green * cbufx[0] * cbufy[0] +
+									   pixel_01.green * cbufx[0] * cbufy[1] + 
+									   pixel_10.green * cbufx[1] * cbufy[0] + 
+									   pixel_11.green * cbufx[1] * cbufy[1]) >> 22;
+						int pixel_b = (pixel_00.blue * cbufx[0] * cbufy[0] +
+									   pixel_01.blue * cbufx[0] * cbufy[1] + 
+									   pixel_10.blue * cbufx[1] * cbufy[0] + 
+									   pixel_11.blue * cbufx[1] * cbufy[1]) >> 22;
+
+						IMAGE_PUT_RGB888_PIXEL_FAST(dst_row_ptr, dst_x_index, COLOR_R8_G8_B8_TO_RGB888(pixel_r, pixel_g, pixel_b));
+					}
+				}
+
+				break;
+			}
+			default:{
+				return;
+			}
+		}
 
 	}else if(hist & IMAGE_HINT_BICUBIC){  //三线型缩放
+        // +---+---+---+---+
+        // | x | x | x | x |
+        // +---+---+---+---+
+        // | x | C | x | x |
+        // +---+---+---+---+
+        // | x | x | x | x |
+        // +---+---+---+---+
+        // | x | x | x | x |
+        // +---+---+---+---+
+		switch (src->pixfmt)
+		{
+			case PIXFORMAT_BINARY:{
+				int src_x_index, src_y_index;
+				uint32_t *dst32, *src32;
+				for (dst_y_index = 0; dst_y_index < dst->h; dst_y_index ++)
+				{
+					dst32 = IMAGE_COMPUTE_BINARY_PIXEL_ROW_PTR(dst, dst_y_index);
+					src_y_index = GET_SITE_PIXEL_FAST(dst_y_index, h_scale);
+					src32 = IMAGE_COMPUTE_BINARY_PIXEL_ROW_PTR(src, src_y_index);
+					for (dst_x_index = 0; dst_x_index < dst->w; dst_x_index ++)
+					{
+						src_x_index = GET_SITE_PIXEL_FAST(dst_x_index, w_scale);
+						IMAGE_PUT_BINARY_PIXEL_FAST(dst32, dst_x_index, IMAGE_GET_BINARY_PIXEL_FAST(src32, src_x_index));
+					}
+				}
+				break;
+			}
+			case PIXFORMAT_GRAYSCALE:{
 
+
+				break;
+			}
+			case PIXFORMAT_RGB565:{
+
+
+				break;
+			}
+			case PIXFORMAT_RGB888:{
+
+
+				break;
+			}
+		
+		default:
+			break;
+		}
 	}
+
+#undef GET_SITE_PIXEL_FAST
 }
 
 /*
-
-
-
-
-void imlib_image_resize_AREA()
-{
-
-}
-
-void imlib_image_resize_BILINEAR()  //双线性插值
-{
-    
-}
-
-void imlib_image_resize_BICUBIC()
-{
-    
-}
-
-
-
-
-
-
-
-
-
-
 //https://www.cnblogs.com/GoldBeetle/archive/2018/09/17/9662871.html
 int is_in_array(short x, short y, short height, short width)
 {

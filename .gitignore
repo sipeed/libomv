@@ -54,3 +54,4 @@ dkms.conf
 *tempCodeRunnerFile.c
 examples/*/build
 test/tmp.*
+.vscode/settings.json
