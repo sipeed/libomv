@@ -285,20 +285,20 @@ void imlib_image_resize(image_t *dst, image_t *src, int hist)
 				int w_limit = src->w - 2;
 				int h_limit = src->h - 2;
 				for (dst_y_index = 0; dst_y_index < dst->h; ++ dst_y_index){
-					pixel24_t *dst_row_ptr = IMAGE_COMPUTE_RGB565_PIXEL_ROW_PTR(dst, dst_y_index);
+					pixel24_t *dst_row_ptr = IMAGE_COMPUTE_RGB888_PIXEL_ROW_PTR(dst, dst_y_index);
 					float f_src_y_index = (float)((dst_y_index + 0.5) * h_scale - 0.5);
 					src_y_index = fast_floorf(f_src_y_index);
 					f_src_y_index = f_src_y_index - src_y_index;
 					if(src_y_index <= 0){
-						src_row_ptr_0 = src_row_ptr_1 = IMAGE_COMPUTE_RGB565_PIXEL_ROW_PTR(src, 0);
+						src_row_ptr_0 = src_row_ptr_1 = IMAGE_COMPUTE_RGB888_PIXEL_ROW_PTR(src, 0);
 					}
 					else if(src_y_index >= h_limit){
-						src_row_ptr_0 = src_row_ptr_1 = IMAGE_COMPUTE_RGB565_PIXEL_ROW_PTR(src, src_y_index);
+						src_row_ptr_0 = src_row_ptr_1 = IMAGE_COMPUTE_RGB888_PIXEL_ROW_PTR(src, src_y_index);
 					}
 					else{
                         int src_y_index_p_1 = src_y_index + 1;
-                        src_row_ptr_0 = IMAGE_COMPUTE_RGB565_PIXEL_ROW_PTR(src, src_y_index);
-                        src_row_ptr_1 = IMAGE_COMPUTE_RGB565_PIXEL_ROW_PTR(src, src_y_index_p_1);
+                        src_row_ptr_0 = IMAGE_COMPUTE_RGB888_PIXEL_ROW_PTR(src, src_y_index);
+                        src_row_ptr_1 = IMAGE_COMPUTE_RGB888_PIXEL_ROW_PTR(src, src_y_index_p_1);
 					}
 					short cbufy[2];									
 					cbufy[0] = IM_MAX(IM_MIN((1.f - f_src_y_index) * 2048, 2048), 0);	
@@ -311,7 +311,7 @@ void imlib_image_resize(image_t *dst, image_t *src, int hist)
 						cbufx[0] = IM_MAX(IM_MIN((1.f - f_src_x_index) * 2048, 2048), 0);	
 						cbufx[1] = 2048 - cbufx[0];	
 						pixel24_t pixel_00, pixel_10, pixel_01, pixel_11;
-						if (src_x_index < 0) {
+						if (src_x_index <= 0) {
 							pixel_00 = pixel_10 = src_row_ptr_0[0];
 							pixel_01 = pixel_11 = src_row_ptr_1[0];
 						} else if (src_x_index >= (src->w - 2)) {
