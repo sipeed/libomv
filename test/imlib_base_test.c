@@ -5,7 +5,7 @@
 // assets/image/565.bmp
 // assets/image/888.bmp
 
-// #define _888_e
+#define _888_e
 
 
 
@@ -231,7 +231,7 @@ int main()
     image_t *img_ts = imlib_image_create(240, 240, PIXFORMAT_BINARY, 0, NULL, false);
     
 #ifdef _888_e
-    bmp_read(img_ts, "../../assets/image/888.bmp");
+    bmp_read(img_ts, "./888.bmp");
     imlib_draw_line(img_ts, 10, 10, 10, 100,        COLOR_R8_G8_B8_TO_RGB888(0xff, 0x00, 0x00), 4);
     imlib_draw_line(img_ts, 20, 10, 20, 100,        COLOR_R8_G8_B8_TO_RGB888(0x00, 0xff, 0x00), 4);
     imlib_draw_line(img_ts, 30, 10, 30, 100,        COLOR_R8_G8_B8_TO_RGB888(0x00, 0x00, 0xff), 4);
@@ -258,7 +258,7 @@ int main()
 
     // find_cricle(img_ts);
 
-    image_t *img_big = imlib_image_create(320, 320, PIXFORMAT_RGB565, 0, NULL, true);
+    image_t *img_big = imlib_image_create(320, 320, PIXFORMAT_RGB888, 0, NULL, true);
 
     imlib_image_resize(img_big, img_ts, IMAGE_HINT_BILINEAR);
 
