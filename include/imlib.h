@@ -1269,6 +1269,10 @@ typedef void (*imlib_draw_row_callback_t)(int x_start, int x_end, int y_row, iml
 void imlib_init_all();
 void imlib_deinit_all();
 
+//imlib base operation
+void imlib_pixfmt_to(image_t *dst, image_t *src, rectangle_t *roi);
+void imlib_image_resize(image_t *src, image_t *dst, int hist);
+
 // Generic Helper Functions
 void imlib_fill_image_from_float(image_t *img, int w, int h, float *data, float min, float max,
                                  bool mirror, bool flip, bool dst_transpose, bool src_transpose);

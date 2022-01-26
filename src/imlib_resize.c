@@ -43,10 +43,10 @@
 float F_BiCubic(float x){
 	float w = abs(x);
 	if(w < 1){
-		return (1 - 2 * (w ** 2)  +  (w ** 3));
+		return (1 - 2 * (w * w)  +  (w * w * w));
 	}
 	else if(w < 2){
-		return (4 - 8 * w + 5 * (w ** 2) - (w ** 3));
+		return (4 - 8 * w + 5 * (w * w) - (w * w * w));
 	}
 	else{
 		return 0;
