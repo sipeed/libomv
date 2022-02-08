@@ -63,7 +63,7 @@ float F_BiCubic(float x){
  */
 void imlib_image_resize(image_t *dst, image_t *src, int hist)
 {
-	imlib_printf(5, "resize start!\n");
+	// imlib_printf(5, "resize start!\n");
 	#define GET_SITE_PIXEL_FAST(index_n, scale) \
 	({ \
 		__typeof__ (index_n) _index_n = (index_n); \
@@ -121,7 +121,7 @@ void imlib_image_resize(image_t *dst, image_t *src, int hist)
 				{
 					src_x_index = GET_SITE_PIXEL_FAST(dst_x_index, w_scale);
 					IMAGE_PUT_RGB565_PIXEL_FAST(dst16, dst_x_index, IMAGE_GET_RGB565_PIXEL_FAST(src16, src_x_index));
-					
+
 				}
 			}
 			break;
