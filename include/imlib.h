@@ -686,7 +686,7 @@ bool image_get_mask_pixel(image_t *ptr, int x, int y);
     __typeof__ (v) _v = (v); \
     ((uint8_t *) _image->data)[(_image->w * _y) + _x] = _v; \
 })
-//得到的是小端的数据
+
 #define IMAGE_GET_RGB565_PIXEL(image, x, y) \
 ({ \
     __typeof__ (image) _image = (image); \
@@ -694,7 +694,7 @@ bool image_get_mask_pixel(image_t *ptr, int x, int y);
     __typeof__ (y) _y = (y); \
     ((uint16_t *) _image->data)[(_image->w * _y) + _x]; \
 })
-//传入的是小端数据
+
 #define IMAGE_PUT_RGB565_PIXEL(image, x, y, v) \
 ({ \
     __typeof__ (image) _image = (image); \
@@ -703,7 +703,7 @@ bool image_get_mask_pixel(image_t *ptr, int x, int y);
     __typeof__ (v) _v = (v); \
     ((uint16_t *) _image->data)[(_image->w * _y) + _x] = _v; \
 })
-//得到的是大端的数据
+
 #define IMAGE_GET_RGB888_PIXEL(image, x, y) \
 ({ \
     __typeof__ (image) _image = (image); \
@@ -711,7 +711,7 @@ bool image_get_mask_pixel(image_t *ptr, int x, int y);
     __typeof__ (y) _y = (y); \
     pixel24232(((pixel24_t *) _image->data)[(_image->w * _y) + _x]); \
 })
-//传入的是大端数据
+
 #define IMAGE_PUT_RGB888_PIXEL(image, x, y, v) \
 ({ \
     __typeof__ (image) _image = (image); \
@@ -1359,7 +1359,7 @@ void gif_open(FIL *fp, int width, int height, bool color, bool loop);
 void gif_add_frame(FIL *fp, image_t *img, uint16_t delay);
 void gif_close(FIL *fp);
 
-// /* MJPEG functions */
+/* MJPEG functions */
 void mjpeg_open(FIL *fp, int width, int height);
 void mjpeg_add_frame(FIL *fp, uint32_t *frames, uint32_t *bytes, image_t *img, int quality);
 void mjpeg_close(FIL *fp, uint32_t *frames, uint32_t *bytes, float fps);
