@@ -4588,7 +4588,8 @@ void imlib_draw_image(image_t *dst_img, image_t *src_img, int dst_x_start, int d
     }
 
     // Special destination?
-    bool is_jpeg = (src_img->pixfmt == PIXFORMAT_JPEG);
+    bool is_jpeg = src_img->pixfmt == PIXFORMAT_JPEG;
+    bool is_png = src_img->pixfmt == PIXFORMAT_PNG;
     int new_not_mutable_pixfmt = 0;
     // Best format to convert yuv/bayer/jpeg image to.
     // int new_not_mutable_pixfmt = (rgb_channel != -1) ? PIXFORMAT_RGB565 :
@@ -4636,7 +4637,7 @@ void imlib_draw_image(image_t *dst_img, image_t *src_img, int dst_x_start, int d
     bool is_color_conversion_scaling = is_color_conversion && is_scaling;
 
     // Make a deep copy of the source image.
-    if (need_deep_copy || is_color_conversion_scaling || is_jpeg) {
+    if (need_deep_copy || is_color_conversion_scaling || is_jpeg || is_png) {
         new_src_img.w = src_img->w; // same width as source image
         new_src_img.h = src_img->h; // same height as source image
 
@@ -4653,6 +4654,8 @@ void imlib_draw_image(image_t *dst_img, image_t *src_img, int dst_x_start, int d
                         imlib_deyuv_image(&new_src_img, src_img);
                     } else if (is_jpeg) {
                         jpeg_decompress_image_to_binary(&new_src_img, src_img);
+                    } else if (is_png) {
+                        png_decompress(&new_src_img, src_img);
                     }
                     break;
                 }
@@ -4663,6 +4666,8 @@ void imlib_draw_image(image_t *dst_img, image_t *src_img, int dst_x_start, int d
                         imlib_deyuv_image(&new_src_img, src_img);
                     } else if (is_jpeg) {
                         jpeg_decompress_image_to_grayscale(&new_src_img, src_img);
+                    } else if (is_png) {
+                        png_decompress(&new_src_img, src_img);
                     }
                     break;
                 }
@@ -4673,6 +4678,8 @@ void imlib_draw_image(image_t *dst_img, image_t *src_img, int dst_x_start, int d
                         imlib_deyuv_image(&new_src_img, src_img);
                     } else if (is_jpeg) {
                         jpeg_decompress_image_to_rgb565(&new_src_img, src_img);
+                    } else if (is_png) {
+                        png_decompress(&new_src_img, src_img);
                     }
                     break;
                 }
@@ -4683,6 +4690,8 @@ void imlib_draw_image(image_t *dst_img, image_t *src_img, int dst_x_start, int d
                         imlib_deyuv_image(&new_src_img, src_img);
                     } else if (is_jpeg) {
                         jpeg_decompress_image_to_rgb888(&new_src_img, src_img);
+                    } else if (is_png) {
+                        png_decompress(&new_src_img, src_img);
                     }
                     break;
                 }
@@ -4692,6 +4701,9 @@ void imlib_draw_image(image_t *dst_img, image_t *src_img, int dst_x_start, int d
                     break;
                 }
                 default : {
+                    if (is_png) {
+                       png_decompress(&new_src_img, src_img);
+                    }
                     break;
                 }
             }
