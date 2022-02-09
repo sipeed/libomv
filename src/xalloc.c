@@ -19,7 +19,7 @@
 
 static void xalloc_fail(uint32_t size)
 {
-    imlib_printf(0, "MemoryError :memory allocation failed, allocating %u bytes", (uint)size);
+    imlib_printf(0, "MemoryError :memory allocation failed, allocating %u bytes", size);
     // mp_raise_msg_varg(&mp_type_MemoryError,
     //         MP_ERROR_TEXT("memory allocation failed, allocating %u bytes"), (uint)size);
 }

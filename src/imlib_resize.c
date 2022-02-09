@@ -63,7 +63,6 @@ float F_BiCubic(float x){
  */
 void imlib_image_resize(image_t *dst, image_t *src, int hist)
 {
-	// imlib_printf(5, "resize start!\n");
 	#define GET_SITE_PIXEL_FAST(index_n, scale) \
 	({ \
 		__typeof__ (index_n) _index_n = (index_n); \
@@ -121,7 +120,6 @@ void imlib_image_resize(image_t *dst, image_t *src, int hist)
 				{
 					src_x_index = GET_SITE_PIXEL_FAST(dst_x_index, w_scale);
 					IMAGE_PUT_RGB565_PIXEL_FAST(dst16, dst_x_index, IMAGE_GET_RGB565_PIXEL_FAST(src16, src_x_index));
-
 				}
 			}
 			break;
@@ -181,7 +179,7 @@ void imlib_image_resize(image_t *dst, image_t *src, int hist)
 						src_row_ptr_0 = src_row_ptr_1 = IMAGE_COMPUTE_GRAYSCALE_PIXEL_ROW_PTR(src, 0);
 					}
 					else if(src_y_index >= h_limit){
-						src_row_ptr_0 = src_row_ptr_1 = IMAGE_COMPUTE_GRAYSCALE_PIXEL_ROW_PTR(src, h_limit);
+						src_row_ptr_0 = src_row_ptr_1 = IMAGE_COMPUTE_GRAYSCALE_PIXEL_ROW_PTR(src, src_y_index);
 					}
 					else{
                         int src_y_index_p_1 = src_y_index + 1;
@@ -202,9 +200,9 @@ void imlib_image_resize(image_t *dst, image_t *src, int hist)
 						if (src_x_index < 0) {
 							pixel_00 = pixel_10 = src_row_ptr_0[0];
 							pixel_01 = pixel_11 = src_row_ptr_1[0];
-						} else if (src_x_index >= (src->w - 2)) {
-							pixel_00 = pixel_10 = src_row_ptr_0[w_limit];
-							pixel_01 = pixel_11 = src_row_ptr_1[w_limit];
+						} else if (src_x_index >= w_limit) {
+							pixel_00 = pixel_10 = src_row_ptr_0[src_x_index];
+							pixel_01 = pixel_11 = src_row_ptr_1[src_x_index];
 						} else { // get 4 neighboring pixels
 							int src_x_index_p_1 = src_x_index + 1;
 							pixel_00 = src_row_ptr_0[src_x_index]; pixel_10 = src_row_ptr_0[src_x_index_p_1];
@@ -255,7 +253,7 @@ void imlib_image_resize(image_t *dst, image_t *src, int hist)
 						if (src_x_index <= 0) {
 							pixel_00 = pixel_10 = src_row_ptr_0[0];
 							pixel_01 = pixel_11 = src_row_ptr_1[0];
-						} else if (src_x_index >= (src->w - 2)) {
+						} else if (src_x_index >= w_limit) {
 							pixel_00 = pixel_10 = src_row_ptr_0[src_x_index];
 							pixel_01 = pixel_11 = src_row_ptr_1[src_x_index];
 						} else { // get 4 neighboring pixels
@@ -314,7 +312,7 @@ void imlib_image_resize(image_t *dst, image_t *src, int hist)
 						if (src_x_index <= 0) {
 							pixel_00 = pixel_10 = src_row_ptr_0[0];
 							pixel_01 = pixel_11 = src_row_ptr_1[0];
-						} else if (src_x_index >= (src->w - 2)) {
+						} else if (src_x_index >= w_limit) {
 							pixel_00 = pixel_10 = src_row_ptr_0[src_x_index];
 							pixel_01 = pixel_11 = src_row_ptr_1[src_x_index];
 						} else { // get 4 neighboring pixels
@@ -354,6 +352,7 @@ void imlib_image_resize(image_t *dst, image_t *src, int hist)
         // +---+---+---+---+
         // | x | x | x | x |
         // +---+---+---+---+
+		//目前忽略这个实现
 		switch (src->pixfmt)
 		{
 			case PIXFORMAT_BINARY:{
