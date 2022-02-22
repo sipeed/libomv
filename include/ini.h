@@ -1,3 +1,4 @@
+#ifdef ENABLE_OPENMV_INI
 /*
  * This file is part of the OpenMV project.
  *
@@ -56,11 +57,11 @@ typedef char* (*ini_reader)(char* str, int num, void* stream);
    stop on first error), -1 on file open error, or -2 on memory allocation
    error (only when INI_USE_STACK is zero).
 */
-// int ini_parse(FATFS *fs, const char* filename, ini_handler handler, void* user);
+int ini_parse(FATFS *fs, const char* filename, ini_handler handler, void* user);
 
 /* Same as ini_parse(), but takes a FIL* instead of filename. This doesn't
    close the file when it's finished -- the caller must do that. */
-// int ini_parse_file(FIL* file, ini_handler handler, void* user);
+int ini_parse_file(FIL* file, ini_handler handler, void* user);
 
 /* Same as ini_parse(), but takes an ini_reader function pointer instead of
    filename. Used for implementing custom or string-based I/O (see also
@@ -130,3 +131,34 @@ int ini_parse_string(const char* string, ini_handler handler, void* user);
 #endif
 
 #endif /* __INI_H__ */
+
+#else
+/**
+ * Copyright (c) 2016 rxi
+ *
+ * This library is free software; you can redistribute it and/or modify it
+ * under the terms of the MIT license. See `ini.c` for details.
+ */
+
+
+
+#ifndef INI_H
+#define INI_H
+
+#define INI_VERSION "0.1.1"
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+typedef struct ini_t ini_t;
+
+ini_t*      ini_load(const char *filename);
+void        ini_free(ini_t *ini);
+const char* ini_get(ini_t *ini, const char *section, const char *key);
+int         ini_sget(ini_t *ini, const char *section, const char *key, const char *scanfmt, void *dst);
+#ifdef __cplusplus
+}
+#endif
+#endif
+
+#endif

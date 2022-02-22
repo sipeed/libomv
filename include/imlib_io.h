@@ -18,6 +18,17 @@ int imlib_printf(int level, char *fmt, ...);
 }while(0);
 
 
+void imlib_printf_image_info(void *img);
+
+#define ENABLE_MAIX_IMAGE_CONSIVE
+
+#ifdef ENABLE_MAIX_IMAGE_CONSIVE
+void* imlib_image2maix_image(void* img);
+void* maix_image2imlib_image(void* img);
+#endif
+
+
+
 #ifdef __cplusplus
 }
 #endif

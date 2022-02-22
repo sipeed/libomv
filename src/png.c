@@ -66,6 +66,28 @@ unsigned lodepng_convert_cb(unsigned char* out, const unsigned char* in,
                 }
                 break;
             }
+            case PIXFORMAT_RGB888: {
+                pixel24_t *pixels = (pixel24_t*) in;
+                if (mode_out->colortype == LCT_RGB) {
+                    // RGB565 -> RGB888
+                    for (int i=0; i < numpixels; i++, out += 3) {
+                        out[0] = pixels[i].red;
+                        out[1] = pixels[i].green;
+                        out[2] = pixels[i].blue;
+                    }
+                } else if (mode_out->colortype == LCT_RGBA) {
+                    // RGB565 -> RGBA888
+                    for (int i=0; i < numpixels; i++, out += 4) {
+                        out[0] = pixels[i].red;
+                        out[1] = pixels[i].green;
+                        out[2] = pixels[i].blue;
+                        out[3] = 255;
+                    }
+                } else {
+                    error = 56; // unsupported color mode conversion.
+                }
+                break;
+            }
             case PIXFORMAT_YUV_ANY:
                 // YUV   -> RGB888
             case PIXFORMAT_BAYER_ANY:
@@ -94,6 +116,32 @@ unsigned lodepng_convert_cb(unsigned char* out, const unsigned char* in,
                     // GRAYSCALE -> RGB565
                     for (int i=0; i < numpixels; i++, in ++) {
                         pixels[i] = COLOR_R8_G8_B8_TO_RGB565(in[0], in[0], in[0]);
+                    }
+                } else {
+                    error = 56; // unsupported color mode conversion.
+                }
+                break;
+            }
+            case PIXFORMAT_RGB888: {
+                pixel24_t *pixels = (pixel24_t*) out;
+                if (mode_in->colortype == LCT_RGB) {
+                    // RGB888 -> RGB888
+                    for (int i=0; i < numpixels; i++, in += 3) {
+                        pixels[i].red = in[0];
+                        pixels[i].red = in[1];
+                        pixels[i].red = in[2];
+                    }
+                } else if (mode_in->colortype == LCT_RGBA) {
+                    // RGBA888 -> RGB888
+                    for (int i=0; i < numpixels; i++, in += 4) {
+                        pixels[i].red = in[0];
+                        pixels[i].red = in[1];
+                        pixels[i].red = in[2];
+                    }
+                } else if (mode_in->colortype == LCT_GREY && mode_in->bitdepth == 8) {
+                    // GRAYSCALE -> RGB888
+                    for (int i=0; i < numpixels; i++, in ++) {
+                        pixels[i] = pixel32224(COLOR_R8_G8_B8_TO_RGB888(in[0], in[0], in[0]));
                     }
                 } else {
                     error = 56; // unsupported color mode conversion.
@@ -152,6 +200,15 @@ bool png_compress(image_t *src, image_t *dst)
             state.info_raw.bitdepth = 16;
             state.info_raw.colortype = LCT_CUSTOM;
             state.info_raw.customfmt = PIXFORMAT_RGB565;
+
+            state.encoder.auto_convert = false;
+            state.info_png.color.bitdepth = 8;
+            state.info_png.color.colortype = LCT_RGB;
+            break;
+        case PIXFORMAT_RGB888:
+            state.info_raw.bitdepth = 24;
+            state.info_raw.colortype = LCT_CUSTOM;
+            state.info_raw.customfmt = PIXFORMAT_RGB888;
 
             state.encoder.auto_convert = false;
             state.info_png.color.bitdepth = 8;
@@ -225,6 +282,11 @@ void png_decompress(image_t *dst, image_t *src)
             state.info_raw.colortype = LCT_CUSTOM;
             state.info_raw.customfmt = PIXFORMAT_RGB565;
             break;
+        case PIXFORMAT_RGB888:
+            state.info_raw.bitdepth = 24;
+            state.info_raw.colortype = LCT_CUSTOM;
+            state.info_raw.customfmt = PIXFORMAT_RGB888;
+            break;
     }
 
     uint8_t *png_data = NULL;
@@ -254,19 +316,21 @@ void png_decompress(image_t *dst, image_t *src)
 #endif // IMLIB_ENABLE_PNG_ENCODER || IMLIB_ENABLE_PNG_DECODER
 
 
-// #if !defined(IMLIB_ENABLE_PNG_ENCODER)
-// bool png_compress(image_t *src, image_t *dst)
-// {
-//     mp_raise_msg_varg(&mp_type_RuntimeError, MP_ERROR_TEXT("PNG encoder is not enabled"));
-// }
-// #endif
+#if !defined(IMLIB_ENABLE_PNG_ENCODER)
+bool png_compress(image_t *src, image_t *dst)
+{
+    // mp_raise_msg_varg(&mp_type_RuntimeError, MP_ERROR_TEXT("PNG encoder is not enabled"));
+    LOG_PRINT("PNG encoder is not enabled");
+}
+#endif
 
-// #if !defined(IMLIB_ENABLE_PNG_DECODER)
-// void png_decompress(image_t *dst, image_t *src)
-// {
-//     mp_raise_msg_varg(&mp_type_RuntimeError, MP_ERROR_TEXT("PNG decoder is not enabled"));
-// }
-// #endif
+#if !defined(IMLIB_ENABLE_PNG_DECODER)
+void png_decompress(image_t *dst, image_t *src)
+{
+    // mp_raise_msg_varg(&mp_type_RuntimeError, MP_ERROR_TEXT("PNG decoder is not enabled"));
+     LOG_PRINT("PNG decoder is not enabled");
+}
+#endif
 
 #if defined(IMLIB_ENABLE_IMAGE_FILE_IO)
 // This function inits the geometry values of an image.
@@ -284,7 +348,7 @@ void png_read_geometry(FIL *fp, image_t *img, const char *path, png_read_setting
 
         rs->png_w = width;
         rs->png_h = height;
-        rs->png_size = IMLIB_IMAGE_MAX_SIZE(f_size(fp));
+        rs->png_size = IMLIB_IMAGE_MAX_SIZE(file_fsize(fp));
 
         img->w = rs->png_w;
         img->h = rs->png_h;
