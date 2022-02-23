@@ -8164,12 +8164,12 @@ void imlib_flood_fill(image_t *img, int x, int y,
                 break;
             }
             case PIXFORMAT_RGB888: {
-                color_seed_threshold = COLOR_R8_G8_B8_TO_RGB888((int)fast_roundf(seed_threshold * COLOR_R8_MAX),
-                                                                (int)fast_roundf(seed_threshold * COLOR_G8_MAX),
-                                                                (int)fast_roundf(seed_threshold * COLOR_B8_MAX));
-                color_floating_threshold = COLOR_R8_G8_B8_TO_RGB888((int)fast_roundf(floating_threshold * COLOR_R8_MAX),
-                                                                    (int)fast_roundf(floating_threshold * COLOR_G8_MAX),
-                                                                    (int)fast_roundf(floating_threshold * COLOR_B8_MAX));
+                color_seed_threshold = COLOR_R8_G8_B8_TO_RGB888(fast_roundf(seed_threshold * COLOR_R8_MAX),
+                                                                fast_roundf(seed_threshold * COLOR_G8_MAX),
+                                                                fast_roundf(seed_threshold * COLOR_B8_MAX));
+                color_floating_threshold = COLOR_R8_G8_B8_TO_RGB888(fast_roundf(floating_threshold * COLOR_R8_MAX),
+                                                                    fast_roundf(floating_threshold * COLOR_G8_MAX),
+                                                                    fast_roundf(floating_threshold * COLOR_B8_MAX));
                 break;
             }
             default: {

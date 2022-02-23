@@ -53,6 +53,7 @@ extern "C"
 #define IM_MIN(a,b)     ({ __typeof__ (a) _a = (a); __typeof__ (b) _b = (b); _a < _b ? _a : _b; })
 #define IM_DIV(a,b)     ({ __typeof__ (a) _a = (a); __typeof__ (b) _b = (b); _b ? (_a / _b) : 0; })
 #define IM_MOD(a,b)     ({ __typeof__ (a) _a = (a); __typeof__ (b) _b = (b); _b ? (_a % _b) : 0; })
+#define IM_LIMIT(a, min_b, max_c) ({__typeof__ (a) _a = (a);__typeof__ (min_b) _min_b = (min_b);__typeof__ (max_c) _max_c = (max_c); _a = _a > max_c ? max_c : _a;_a < min_b ? min_b : _a;})
 
 #define INT8_T_BITS     (sizeof(int8_t) * 8)
 #define INT8_T_MASK     (INT8_T_BITS - 1)
@@ -617,6 +618,8 @@ typedef struct image {
 } image_t;
 
 image_t* imlib_image_create(int w, int h, pixformat_t pixfmt, uint32_t size, void *pixels, bool is_data_alloc);
+image_t* imlib_image_create_fb_buff(int w, int h, pixformat_t pixfmt, uint32_t size, void *pixels, bool is_data_alloc);
+void imlib_image_destroy_fb_buff(image_t **obj);
 void imlib_image_destroy(image_t **obj);
 void imlib_image_init(image_t *ptr, int w, int h, pixformat_t pixfmt, uint32_t size, void *pixels);
 void image_copy(image_t *dst, image_t *src);
@@ -1150,7 +1153,7 @@ typedef struct threshold {
     int8_t AValue;
     int8_t BValue;
 } threshold_t;
-
+           //平均数, 中位数, 众数, stdev, 最小值, 最大值,
 typedef struct statistics {
     uint8_t LMean, LMedian, LMode, LSTDev, LMin, LMax, LLQ, LUQ;
     int8_t AMean, AMedian, AMode, ASTDev, AMin, AMax, ALQ, AUQ;
@@ -1387,8 +1390,8 @@ int imlib_image_std(image_t *src); // grayscale only
 /* Template Matching */
 void imlib_midpoint_pool(image_t *img_i, image_t *img_o, int x_div, int y_div, const int bias);
 void imlib_mean_pool(image_t *img_i, image_t *img_o, int x_div, int y_div);
-float imlib_template_match_ds(image_t *image, image_t *template, rectangle_t *r);
-float imlib_template_match_ex(image_t *image, image_t *template, rectangle_t *roi, int step, rectangle_t *r);
+float imlib_template_match_ds(image_t *image, image_t *template_obj, rectangle_t *r);
+float imlib_template_match_ex(image_t *image, image_t *template_obj, rectangle_t *roi, int step, rectangle_t *r);
 
 /* Clustering functions */
 array_t *cluster_kmeans(array_t *points, int k, cluster_dist_t dist_func);
@@ -1567,6 +1570,15 @@ void imlib_phasecorrelate(image_t *img0, image_t *img1, rectangle_t *roi0, recta
                           float *x_translation, float *y_translation, float *rotation, float *scale, float *response);
 
 array_t *imlib_selective_search(image_t *src, float t, int min_size, float a1, float a2, float a3);
+
+
+// custem
+
+void imlib_find_domain(image_t* img, image_t** dst, float edge_gate);
+
+
+
+
 #ifdef __cplusplus
 }
 #endif

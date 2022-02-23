@@ -176,7 +176,8 @@ void imlib_pixfmt_to(image_t *dst, image_t *src, rectangle_t *roi_i)
                 pixel24_t *src_row_ptr = IMAGE_COMPUTE_RGB888_PIXEL_ROW_PTR(src, roi_y_index);
                 uint8_t *dst_row_ptr = IMAGE_COMPUTE_GRAYSCALE_PIXEL_ROW_PTR(dst, dst_y_index);
                 for(int dst_x_index = 0, roi_x_index = roi->x; dst_x_index < dst->w; ++ dst_x_index, ++ roi_x_index){
-                    int pixel = COLOR_RGB888_TO_GRAYSCALE(IMAGE_GET_RGB888_PIXEL_FAST(src_row_ptr, roi_x_index));
+                    pixel24_t s_pixel = IMAGE_GET_RGB888_PIXEL_FAST_(src_row_ptr, roi_x_index);
+                    int pixel = COLOR_RGB888_TO_Y_(s_pixel.red, s_pixel.green, s_pixel.blue);
                     IMAGE_PUT_GRAYSCALE_PIXEL_FAST(dst_row_ptr, dst_x_index, pixel);
                 }
             }
@@ -186,7 +187,8 @@ void imlib_pixfmt_to(image_t *dst, image_t *src, rectangle_t *roi_i)
                 pixel24_t *src_row_ptr = IMAGE_COMPUTE_RGB888_PIXEL_ROW_PTR(src, roi_y_index);
                 uint16_t *dst_row_ptr = IMAGE_COMPUTE_RGB565_PIXEL_ROW_PTR(dst, dst_y_index);
                 for(int dst_x_index = 0, roi_x_index = roi->x; dst_x_index < dst->w; ++ dst_x_index, ++ roi_x_index){
-                    int pixel = COLOR_RGB888_TO_RGB565(IMAGE_GET_RGB888_PIXEL_FAST(src_row_ptr, roi_x_index));
+                    pixel24_t src_pixel = IMAGE_GET_RGB888_PIXEL_FAST_(src_row_ptr, roi_x_index);
+                    int pixel = COLOR_R8_G8_B8_TO_RGB565(src_pixel.red, src_pixel.green, src_pixel.blue);
                     IMAGE_PUT_RGB565_PIXEL_FAST(dst_row_ptr, dst_x_index, pixel);
                 }
             }

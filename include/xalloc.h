@@ -14,15 +14,15 @@
 extern "C" {
 #endif
 
-
+#include <stddef.h>
 #include <stdint.h>
-void *xalloc(uint32_t size);
-void *xalloc_try_alloc(uint32_t size);
-void *xalloc0(uint32_t size);
+void *xalloc(size_t size);
+void *xalloc_try_alloc(size_t size);
+void *xalloc0(size_t size);
 void xfree(void *mem);
-void *xrealloc(void *mem, uint32_t size);
+void *xrealloc(void *mem, size_t size);
 
-void *xcalloc(uint32_t nitems, uint32_t size);
+void *xcalloc(size_t nitems, size_t size);
 
 
 // #define xcalloc(num, item_size) calloc(num, item_size)

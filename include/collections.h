@@ -99,6 +99,7 @@ typedef struct list
 }
 list_t;
 
+void imlib_list_init(list_t *ptr, size_t data_len);
 void list_init(list_t *ptr, size_t data_len);
 void list_copy(list_t *dst, list_t *src);
 void list_free(list_t *ptr);

@@ -173,7 +173,7 @@ void fb_alloc_fail()
 void fb_alloc_init0()
 {
     _fballoc_start = (char*)xalloc(OMV_FB_ALLOC_SIZE);
-    _fballoc = _fballoc_start + OMV_FB_ALLOC_SIZE - 1;
+    _fballoc = _fballoc_start + OMV_FB_ALLOC_SIZE - sizeof(uint32_t);
     pointer = _fballoc;
 }
 
@@ -309,7 +309,7 @@ void *fb_alloc(uint32_t size, int hints)
             result += FB_ALLOC_ALIGNMENT - offset;
         }
     }
-    printf("申请内存!%d\n", ++ alloc_num);
+    printf("申请内存!%d   指针地址:%p 大小:%d\n", ++ alloc_num, pointer, size);
     return result;
 }
 
@@ -399,8 +399,8 @@ void fb_free(void *msm)
         alloc_bytes -= size;
         #endif
         pointer += size; // Get size and pop.
+        LOG_PRINT("free o pointer :%p   size:%d   %d", pointer, size, -- alloc_num);
     }
-    printf("释放内存!%d\n", -- alloc_num);
 }
 
 void fb_free_all()

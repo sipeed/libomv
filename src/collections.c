@@ -219,6 +219,13 @@ void fifo_peek(fifo_t *ptr, void *data)
 // list //
 //////////
 
+void imlib_list_init(list_t *ptr, size_t data_len)
+{
+    ptr->head_ptr = NULL;
+    ptr->tail_ptr = NULL;
+    ptr->size = 0;
+    ptr->data_len = data_len;
+}
 void list_init(list_t *ptr, size_t data_len)
 {
     ptr->head_ptr = NULL;

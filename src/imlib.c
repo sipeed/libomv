@@ -271,7 +271,36 @@ image_t* imlib_image_create(int w, int h, pixformat_t pixfmt, uint32_t size, voi
     }
     return ptr;
 }
-
+image_t* imlib_image_create_fb_buff(int w, int h, pixformat_t pixfmt, uint32_t size, void *pixels, bool is_data_alloc)
+{
+    image_t *ptr = fb_alloc(sizeof(image_t), 0);
+    ptr->w = w;
+    ptr->h = h;
+    ptr->pixfmt = pixfmt;
+    ptr->size   = size;
+    ptr->pixels = pixels;
+    ptr->is_data_alloc = is_data_alloc;
+    if(ptr->is_data_alloc)
+    {
+        ptr->size = image_size(ptr);
+        ptr->pixels = fb_alloc(ptr->size, 0);
+        ptr->is_data_alloc = is_data_alloc;
+    }
+    return ptr;
+}
+void imlib_image_destroy_fb_buff(image_t **obj)
+{
+    if (*obj)
+    {
+        if ((*obj)->is_data_alloc)
+        {
+            fb_free((*obj)->data);
+            (*obj)->data = NULL;
+        }
+        fb_free(*obj);
+        *obj = NULL;
+    }
+}
 void imlib_image_destroy(image_t **obj)
 {
     if (*obj)
@@ -454,7 +483,7 @@ int8_t imlib_rgb565_to_l(uint16_t pixel)
 
     y = (y>0.008856f) ? fast_cbrtf(y) : ((y * 7.787037f) + 0.137931f);
 
-    return fast_floorf(116 * y) - 16;
+    return IM_LIMIT(fast_floorf(116 * y) - 16, COLOR_L_MIN, COLOR_L_MAX);
 }
 
 int8_t imlib_rgb565_to_a(uint16_t pixel)
@@ -469,7 +498,7 @@ int8_t imlib_rgb565_to_a(uint16_t pixel)
     x = (x>0.008856f) ? fast_cbrtf(x) : ((x * 7.787037f) + 0.137931f);
     y = (y>0.008856f) ? fast_cbrtf(y) : ((y * 7.787037f) + 0.137931f);
 
-    return fast_floorf(500 * (x-y));
+    return IM_LIMIT(fast_floorf(500 * (x-y)), COLOR_A_MIN, COLOR_A_MAX);
 }
 
 int8_t imlib_rgb565_to_b(uint16_t pixel)
@@ -484,7 +513,7 @@ int8_t imlib_rgb565_to_b(uint16_t pixel)
     y = (y>0.008856f) ? fast_cbrtf(y) : ((y * 7.787037f) + 0.137931f);
     z = (z>0.008856f) ? fast_cbrtf(z) : ((z * 7.787037f) + 0.137931f);
 
-    return fast_floorf(200 * (y-z));
+    return IM_LIMIT(fast_floorf(200 * (y-z)), COLOR_B_MIN, COLOR_B_MAX);
 }
 int8_t imlib_rgb888_to_l(uint32_t pixel)
 {
@@ -496,7 +525,7 @@ int8_t imlib_rgb888_to_l(uint32_t pixel)
 
     y = (y>0.008856f) ? fast_cbrtf(y) : ((y * 7.787037f) + 0.137931f);
 
-    return fast_floorf(116 * y) - 16;
+    return IM_LIMIT(fast_floorf(116 * y) - 16, COLOR_L_MIN, COLOR_L_MAX);
 }
 
 int8_t imlib_rgb888_to_a(uint32_t pixel)
@@ -511,7 +540,7 @@ int8_t imlib_rgb888_to_a(uint32_t pixel)
     x = (x>0.008856f) ? fast_cbrtf(x) : ((x * 7.787037f) + 0.137931f);
     y = (y>0.008856f) ? fast_cbrtf(y) : ((y * 7.787037f) + 0.137931f);
 
-    return fast_floorf(500 * (x-y));
+    return IM_LIMIT(fast_floorf(500 * (x-y)), COLOR_A_MIN, COLOR_A_MAX);
 }
 
 int8_t imlib_rgb888_to_b(uint32_t pixel)
@@ -526,7 +555,7 @@ int8_t imlib_rgb888_to_b(uint32_t pixel)
     y = (y>0.008856f) ? fast_cbrtf(y) : ((y * 7.787037f) + 0.137931f);
     z = (z>0.008856f) ? fast_cbrtf(z) : ((z * 7.787037f) + 0.137931f);
 
-    return fast_floorf(200 * (y-z));
+    return IM_LIMIT(fast_floorf(200 * (y-z)), COLOR_B_MIN, COLOR_B_MAX);
 }
 // https://en.wikipedia.org/wiki/Lab_color_space -> CIELAB-CIEXYZ conversions
 // https://en.wikipedia.org/wiki/SRGB -> Specification of the transformation
@@ -1372,4 +1401,397 @@ void imlib_sepconv3(image_t *img, const int8_t *krn, const float m, const int b)
         }
     }
     fb_free(buffer);
+}
+
+
+
+
+// 下面的函数是 maixpy 的一些函数 有一些定制函数
+
+
+typedef struct xylf
+{
+    int16_t x, y, l, r;
+}
+xylf_t;
+
+
+size_t __imlib_flood_fill_int(image_t *out, image_t *img, int x, int y,
+                          int seed_threshold, int floating_threshold,
+                          flood_fill_call_back_t cb, void *data)
+{
+    lifo_t lifo;
+    size_t lifo_len;
+    lifo_alloc_all(&lifo, &lifo_len, sizeof(xylf_t));
+	size_t count = 0;
+
+    for(int seed_pixel = IMAGE_GET_GRAYSCALE_PIXEL(img, x, y);;) {
+        int left = x, right = x;
+        uint8_t *row = IMAGE_COMPUTE_GRAYSCALE_PIXEL_ROW_PTR(img, y);
+        uint32_t *out_row = IMAGE_COMPUTE_BINARY_PIXEL_ROW_PTR(out, y);
+
+        while ((left > 0)
+        && (!IMAGE_GET_BINARY_PIXEL_FAST(out_row, left - 1))
+        && COLOR_BOUND_GRAYSCALE(IMAGE_GET_GRAYSCALE_PIXEL_FAST(row, left - 1), seed_pixel, seed_threshold)
+        && COLOR_BOUND_GRAYSCALE(IMAGE_GET_GRAYSCALE_PIXEL_FAST(row, left - 1),
+                                    IMAGE_GET_GRAYSCALE_PIXEL_FAST(row, left), floating_threshold)) {
+            left--;
+        }
+
+        while ((right < (img->w - 1))
+        && (!IMAGE_GET_BINARY_PIXEL_FAST(out_row, right + 1))
+        && COLOR_BOUND_GRAYSCALE(IMAGE_GET_GRAYSCALE_PIXEL_FAST(row, right + 1), seed_pixel, seed_threshold)
+        && COLOR_BOUND_GRAYSCALE(IMAGE_GET_GRAYSCALE_PIXEL_FAST(row, right + 1),
+                                    IMAGE_GET_GRAYSCALE_PIXEL_FAST(row, right), floating_threshold)) {
+            right++;
+        }
+
+        for (int i = left; i <= right; i++) {
+            IMAGE_SET_BINARY_PIXEL_FAST(out_row, i);
+        }
+        count += (right-left+1);
+
+        bool break_out = false;
+        for(;;) {
+            if (lifo_size(&lifo) < lifo_len) {
+                uint8_t *old_row = IMAGE_COMPUTE_GRAYSCALE_PIXEL_ROW_PTR(img, y);
+
+                if (y > 0) {
+                    row = IMAGE_COMPUTE_GRAYSCALE_PIXEL_ROW_PTR(img, y - 1);
+                    out_row = IMAGE_COMPUTE_BINARY_PIXEL_ROW_PTR(out, y - 1);
+
+                    bool recurse = false;
+                    for (int i = left; i <= right; i++) {
+                        if ((!IMAGE_GET_BINARY_PIXEL_FAST(out_row, i))
+                        && COLOR_BOUND_GRAYSCALE(IMAGE_GET_GRAYSCALE_PIXEL_FAST(row, i), seed_pixel, seed_threshold)
+                        && COLOR_BOUND_GRAYSCALE(IMAGE_GET_GRAYSCALE_PIXEL_FAST(row, i),
+                                                    IMAGE_GET_GRAYSCALE_PIXEL_FAST(old_row, i), floating_threshold)) {
+                            xylf_t context;
+                            context.x = x;
+                            context.y = y;
+                            context.l = left;
+                            context.r = right;
+                            lifo_enqueue(&lifo, &context);
+                            x = i;
+                            y = y - 1;
+                            recurse = true;
+                            break;
+                        }
+                    }
+                    if (recurse) {
+                        break;
+                    }
+                }
+
+                if (y < (img->h - 1)) {
+                    row = IMAGE_COMPUTE_GRAYSCALE_PIXEL_ROW_PTR(img, y + 1);
+                    out_row = IMAGE_COMPUTE_BINARY_PIXEL_ROW_PTR(out, y + 1);
+
+                    bool recurse = false;
+                    for (int i = left; i <= right; i++) {
+                        if ((!IMAGE_GET_BINARY_PIXEL_FAST(out_row, i))
+                        && COLOR_BOUND_GRAYSCALE(IMAGE_GET_GRAYSCALE_PIXEL_FAST(row, i), seed_pixel, seed_threshold)
+                        && COLOR_BOUND_GRAYSCALE(IMAGE_GET_GRAYSCALE_PIXEL_FAST(row, i),
+                                                    IMAGE_GET_GRAYSCALE_PIXEL_FAST(old_row, i), floating_threshold)) {
+                            xylf_t context;
+                            context.x = x;
+                            context.y = y;
+                            context.l = left;
+                            context.r = right;
+                            lifo_enqueue(&lifo, &context);
+                            x = i;
+                            y = y + 1;
+                            recurse = true;
+                            break;
+                        }
+                    }
+                    if (recurse) {
+                        break;
+                    }
+                }
+            }
+
+            if (cb) cb(img, y, left, right, data);
+
+            if (!lifo_size(&lifo)) {
+                break_out = true;
+                break;
+            }
+
+            xylf_t context;
+            lifo_dequeue(&lifo, &context);
+            x = context.x;
+            y = context.y;
+            left = context.l;
+            right = context.r;
+        }
+
+        if (break_out) {
+            break;
+        }
+    }
+    
+
+    lifo_free(&lifo);
+	return count;
+}
+
+
+
+// #ifdef IMLIB_ENABLE_FLOOD_FILL
+
+size_t __imlib_flood_fill(image_t *img, int x, int y,
+                      float seed_threshold, float floating_threshold,
+                      int c, bool invert, bool clear_background, image_t *mask)
+{
+	size_t count = 0;
+    if ((0 <= x) && (x < img->w) && (0 <= y) && (y < img->h)) {
+        image_t out;
+        out.w = img->w;
+        out.h = img->h;
+        out.pixfmt = PIXFORMAT_BINARY;
+        out.data = fb_alloc0(image_size(&out), FB_ALLOC_NO_HINT);
+
+        if (mask) {
+            for (int y = 0, yy = out.h; y < yy; y++) {
+                uint32_t *row_ptr = IMAGE_COMPUTE_BINARY_PIXEL_ROW_PTR(&out, y);
+                for (int x = 0, xx = out.w; x < xx; x++) {
+                    if (image_get_mask_pixel(mask, x, y)) IMAGE_SET_BINARY_PIXEL_FAST(row_ptr, x);
+                }
+            }
+        }
+
+        int color_seed_threshold = 0;
+        int color_floating_threshold = 0;
+
+        switch(img->pixfmt) {
+        //     case PIXFORMAT_BINARY: {
+        //         color_seed_threshold = fast_roundf(seed_threshold * COLOR_BINARY_MAX);
+        //         color_floating_threshold = fast_roundf(floating_threshold * COLOR_BINARY_MAX);
+        //         break;
+        //     }
+            case PIXFORMAT_GRAYSCALE: {
+                color_seed_threshold = fast_roundf(seed_threshold * COLOR_GRAYSCALE_MAX);
+                color_floating_threshold = fast_roundf(floating_threshold * COLOR_GRAYSCALE_MAX);
+                break;
+            }
+        //     case PIXFORMAT_RGB565: {
+        //         color_seed_threshold = COLOR_R5_G6_B5_TO_RGB565(fast_roundf(seed_threshold * COLOR_R5_MAX),
+        //                                                         fast_roundf(seed_threshold * COLOR_G6_MAX),
+        //                                                         fast_roundf(seed_threshold * COLOR_B5_MAX));
+        //         color_floating_threshold = COLOR_R5_G6_B5_TO_RGB565(fast_roundf(floating_threshold * COLOR_R5_MAX),
+        //                                                             fast_roundf(floating_threshold * COLOR_G6_MAX),
+        //                                                             fast_roundf(floating_threshold * COLOR_B5_MAX));
+        //         break;
+        //     }
+            default: {
+                break;
+            }
+        }
+
+        count = __imlib_flood_fill_int(&out, img, x, y, color_seed_threshold, color_floating_threshold, NULL, NULL);
+
+        switch(img->bpp) {
+        //     case PIXFORMAT_BINARY: {
+        //         for (int y = 0, yy = out.h; y < yy; y++) {
+        //             uint32_t *row_ptr = IMAGE_COMPUTE_BINARY_PIXEL_ROW_PTR(img, y);
+        //             uint32_t *out_row_ptr = IMAGE_COMPUTE_BINARY_PIXEL_ROW_PTR(&out, y);
+        //             for (int x = 0, xx = out.w; x < xx; x++) {
+        //                 if (IMAGE_GET_BINARY_PIXEL_FAST(out_row_ptr, x) ^ invert) {
+        //                     IMAGE_PUT_BINARY_PIXEL_FAST(row_ptr, x, c);
+        //                 } else if (clear_background) {
+        //                     IMAGE_PUT_BINARY_PIXEL_FAST(row_ptr, x, 0);
+        //                 }
+        //             }
+        //         }
+        //         break;
+        //     }
+            case PIXFORMAT_GRAYSCALE: {
+                for (int y = 0, yy = out.h; y < yy; y++) {
+                    uint8_t *row_ptr = IMAGE_COMPUTE_GRAYSCALE_PIXEL_ROW_PTR(img, y);
+                    uint32_t *out_row_ptr = IMAGE_COMPUTE_BINARY_PIXEL_ROW_PTR(&out, y);
+                    for (int x = 0, xx = out.w; x < xx; x++) {
+                        if (IMAGE_GET_BINARY_PIXEL_FAST(out_row_ptr, x) ^ invert) {
+                            IMAGE_PUT_GRAYSCALE_PIXEL_FAST(row_ptr, x, c);
+                        } else if (clear_background) {
+                            IMAGE_PUT_GRAYSCALE_PIXEL_FAST(row_ptr, x, 0);
+                        }
+                    }
+                }
+                break;
+            }
+        //     case PIXFORMAT_RGB565: {
+        //         for (int y = 0, yy = out.h; y < yy; y++) {
+        //             uint16_t *row_ptr = IMAGE_COMPUTE_RGB565_PIXEL_ROW_PTR(img, y);
+        //             uint32_t *out_row_ptr = IMAGE_COMPUTE_BINARY_PIXEL_ROW_PTR(&out, y);
+        //             for (int x = 0, xx = out.w; x < xx; x++) {
+        //                 if (IMAGE_GET_BINARY_PIXEL_FAST(out_row_ptr, x) ^ invert) {
+        //                     IMAGE_PUT_RGB565_PIXEL_FAST(row_ptr, x, c);
+        //                 } else if (clear_background) {
+        //                     IMAGE_PUT_RGB565_PIXEL_FAST(row_ptr, x, 0);
+        //                 }
+        //             }
+        //         }
+        //         break;
+        //     }
+            default: {
+                break;
+            }
+        }
+
+        fb_free(out.data);
+    }
+	return count;
+}
+// #endif // IMLIB_ENABLE_FLOOD_FILL
+
+
+
+// #ifndef OMV_MINIMUM
+//输入灰度图像，找出面积最大的连通域
+#define MAX_DOMAIN_CNT 254
+
+static void _get_hv_pixel(image_t* img, uint16_t* h0, uint16_t* h1, \
+						uint16_t* h2, uint16_t* v0, uint16_t* v1, uint16_t* v2){
+	uint8_t* data = img->pixels;
+	uint16_t w = img->w; 
+	uint16_t h = img->h;
+	
+	uint16_t minx=w;
+	uint16_t miny=h;
+	uint16_t maxx=0;
+	uint16_t maxy=0;
+	uint16_t _h1=0; uint16_t _h2=0; uint16_t _v1=0; uint16_t _v2=0;
+	
+	for (int y = 0, yy = img->h; y < yy; y++) {
+		//uint32_t *row_ptr = IMAGE_COMPUTE_BINARY_PIXEL_ROW_PTR(img, y);
+		uint32_t *img_row_ptr = IMAGE_COMPUTE_BINARY_PIXEL_ROW_PTR(img, y);
+		for (int x = 0, xx = img->w; x < xx; x++) {
+			if (IMAGE_GET_BINARY_PIXEL_FAST(img_row_ptr, x) ) {
+				if(y<miny) miny=y; else if(y>maxy) maxy=y; 
+				if(x<minx) minx=x; else if(x>maxx) maxx=x;
+				if(y==0) _h1+=1;   else if(y==h-1) _h2+=1;
+				if(x==0) _v1+=1;   else if(x==w-1) _v2+=1;
+			} 
+		}
+	}
+	
+	*h0 = maxx-minx+1;
+	*v0 = maxy-miny+1;
+	*h1 = _h1; *h2 = _h2;
+	*v1 = _v1; *v2 = _v2;
+	
+	return;
+}
+
+
+
+#define EDGE_GATE 0.7
+void imlib_find_domain(image_t* img, image_t** dst, float edge_gate)
+{
+	if(img->pixfmt != PIXFORMAT_GRAYSCALE) 
+		imlib_printf(0, "only support grayscale pic"); 
+	
+	uint16_t w = img->w;
+	uint16_t h = img->h;
+	uint8_t* pic = img->pixels;
+	
+	uint16_t domian_cnt[MAX_DOMAIN_CNT];
+	uint8_t p_x[MAX_DOMAIN_CNT];
+	uint8_t p_y[MAX_DOMAIN_CNT];
+	for(int i=0; i < MAX_DOMAIN_CNT; i++) {
+		domian_cnt[i] = 0;
+	}
+
+	uint8_t color_idx = 0;
+
+	for(int y=0; y<h; y++) { 
+		if(color_idx>=MAX_DOMAIN_CNT)
+			break;
+		for(int x=0; x<w; x++){
+			int oft = x+y*w;
+			if(pic[oft] > color_idx){
+				domian_cnt[color_idx] = __imlib_flood_fill(img, x, y, 0, 0,color_idx+1, 0, 0, NULL);
+				p_x[color_idx] = x;
+				p_y[color_idx] = y;
+				//printf("(%d, %d) -> %d, count=%d\r\n",x,y,color_idx+1,domian_cnt[color_idx]);
+				color_idx += 1;
+				
+			}
+		}
+	}
+	
+	int maxcnt = 0;
+	int maxidx = -1;
+	int max2cnt = 0;
+	int max2idx = -1;
+	for(int i=0; i< MAX_DOMAIN_CNT; i++){
+		if(domian_cnt[i]>maxcnt) {
+			max2cnt= maxcnt;
+			max2idx= maxidx;
+			maxcnt = domian_cnt[i];
+			maxidx = i;
+		} else if(domian_cnt[i]>max2cnt) {
+			max2cnt = domian_cnt[i];
+			max2idx = i;
+		}
+	}
+	//printf("max domain idx=%d, cnt=%d\r\n",maxidx, maxcnt);
+	if(maxcnt == 0) { //没有连通域
+        *dst = NULL;
+		return ;
+	} else if (max2cnt<w+h) { //只有一块连通域, 或者第二块连通域面积过小
+        image_t *out = imlib_image_create(img->w, img->h, PIXFORMAT_BINARY, NULL, NULL, true);
+        
+		__imlib_flood_fill_int(out, img, p_x[maxidx], p_y[maxidx], 0, 0, NULL, NULL);
+        *dst = out;
+		return ;
+	} else { //有超过两块较大的连通域
+		image_t out0, out1;
+		out0.w = out1.w = img->w; 
+		out0.h = out1.h = img->h;
+		out0.pixfmt = out1.pixfmt = PIXFORMAT_BINARY;
+		out0.data = fb_alloc0(image_size(&out0), FB_ALLOC_NO_HINT);
+		out1.data = fb_alloc0(image_size(&out1), FB_ALLOC_NO_HINT);
+		__imlib_flood_fill_int(&out0, img, p_x[maxidx], p_y[maxidx], 0, 0, NULL, NULL);
+		__imlib_flood_fill_int(&out1, img, p_x[max2idx], p_y[max2idx], 0, 0, NULL, NULL);
+		uint16_t r0_h0,r0_h1,r0_h2; //水平方向像素范围，上边界像素数，下边界像素数
+		uint16_t r0_v0,r0_v1,r0_v2; //
+		uint16_t r1_h0,r1_h1,r1_h2; //水平方向像素范围，上边界像素数，下边界像素数
+		uint16_t r1_v0,r1_v1,r1_v2; //
+		_get_hv_pixel(&out0, &r0_h0,&r0_h1,&r0_h2, &r0_v0,&r0_v1,&r0_v2);
+		_get_hv_pixel(&out1, &r1_h0,&r1_h1,&r1_h2, &r1_v0,&r1_v1,&r1_v2);
+		uint16_t r0_h, r0_v, r1_h, r1_v;
+		r0_h = r0_h1>r0_h2 ? r0_h1 : r0_h2;
+		r1_h = r1_h1>r1_h2 ? r1_h1 : r1_h2;
+		r0_v = r0_v1>r0_v2 ? r0_v1 : r0_v2;
+		r1_v = r1_v1>r1_v2 ? r1_v1 : r1_v2;
+		float r0_hrate, r0_vrate, r1_hrate, r1_vrate;
+		r0_hrate = 1.0*r0_h/r0_h0;	r0_vrate = 1.0*r0_v/r0_v0;
+		r1_hrate = 1.0*r1_h/r1_h0;	r1_vrate = 1.0*r1_v/r1_v0;
+		// printf("r0cnt=%04d; h0=%03d, h1=%03d, h2=%03d; v0=%03d, v1=%03d, v2=%03d; hrate=%.3f, vrate=%.3f\r\n",
+			//  maxcnt, r0_h0, r0_h1, r0_h2, r0_v0, r0_v1, r0_v2, r0_hrate, r0_vrate );
+		// printf("r1cnt=%04d; h0=%03d, h1=%03d, h2=%03d; v0=%03d, v1=%03d, v2=%03d; hrate=%.3f, vrate=%.3f\r\n",
+			//  max2cnt, r1_h0, r1_h1, r1_h2, r1_v0, r1_v1, r1_v2, r1_hrate, r1_vrate );
+		int r_flag = -1;
+		if(r0_hrate < edge_gate || r0_vrate < edge_gate) { //r0是线
+			r_flag = 0; //使用r0
+		} else if(r1_hrate < edge_gate || r1_vrate < edge_gate) { //r0不是线,r1是线
+			r_flag = 1;
+		} else { //两个都不是线，选面积大的
+			r_flag = 0;
+		}
+		// printf("rflag=%d\r\n\r\n", r_flag);
+
+        image_t *out = imlib_image_create(w, h, PIXFORMAT_BINARY, NULL, NULL, true);
+        // image_copy(out, r_flag ? &out1 : &out0);
+        memcpy(out->data, r_flag?out1.data:out0.data, image_size(&out0));
+		// uint8_t* data = xalloc(image_size(&out0));
+		// mp_obj_t image = py_image(w, h, PIXFORMAT_BINARY, data);
+		// memcpy(((py_image_obj_t *)image)->_cobj.data, r_flag?out1.data:out0.data, image_size(&out0));
+		fb_free(NULL);
+		fb_free(NULL);
+        *dst = out;
+		return ;
+	}	
 }
