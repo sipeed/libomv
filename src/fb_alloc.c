@@ -167,7 +167,8 @@ char *fb_alloc_stack_pointer()
 
 void fb_alloc_fail()
 {
-    imlib_printf(0, "MemoryError :Out of fast Frame Buffer Stack Memory! Please reduce the resolution of the image you are running this algorithm on to bypass this issue!");
+    ERR_PRINT("MemoryError :Out of fast Frame Buffer Stack Memory! Please reduce the resolution of \
+                                the image you are running this algorithm on to bypass this issue!");
 }
 
 void fb_alloc_init0()
@@ -213,7 +214,7 @@ void fb_alloc_mark()
     alloc_bytes = 0;
     alloc_bytes_peak = 0;
     #endif
-    printf("开始一个栈！\n");
+    DEBUG_PRINT("开始一个栈！\n");
 }
 
 static void int_fb_alloc_free_till_mark(bool free_permanent)
@@ -241,7 +242,7 @@ static void int_fb_alloc_free_till_mark(bool free_permanent)
     #if defined(FB_ALLOC_STATS)
     printf("fb_alloc peak memory: %lu\n", alloc_bytes_peak);
     #endif
-    printf("释放一个栈！\n");
+    DEBUG_PRINT("释放一个栈！\n");
 }
 
 void fb_alloc_free_till_mark()
@@ -309,7 +310,7 @@ void *fb_alloc(uint32_t size, int hints)
             result += FB_ALLOC_ALIGNMENT - offset;
         }
     }
-    printf("申请内存!%d   指针地址:%p 大小:%d\n", ++ alloc_num, pointer, size);
+    DEBUG_PRINT("申请内存!%d   指针地址:%p 大小:%d\n", ++ alloc_num, pointer, size);
     return result;
 }
 
@@ -372,7 +373,7 @@ void *fb_alloc_all(uint32_t *size, int hints)
         }
         *size = (*size / FB_ALLOC_ALIGNMENT) * FB_ALLOC_ALIGNMENT;
     }
-    printf("申请全部的内存!%d\n", ++ alloc_num);
+    DEBUG_PRINT("申请全部的内存!%d\n", ++ alloc_num);
     return result;
 }
 
@@ -399,7 +400,7 @@ void fb_free(void *msm)
         alloc_bytes -= size;
         #endif
         pointer += size; // Get size and pop.
-        LOG_PRINT("free o pointer :%p   size:%d   %d", pointer, size, -- alloc_num);
+        DEBUG_PRINT("free o pointer :%p   size:%d   %d", pointer, size, -- alloc_num);
     }
 }
 
@@ -419,7 +420,7 @@ void fb_free_all()
         #endif
         pointer += size; // Get size and pop.
     }
-    printf("一起释放内存!\n");
+    DEBUG_PRINT("一起释放内存!\n");
 }
 
 #endif

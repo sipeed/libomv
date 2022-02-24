@@ -7,14 +7,32 @@ extern "C"
 
 
 int imlib_printf(int level, char *fmt, ...);
+void imlib_set_print_out_level(int le);
+
+
+
+#define DEBUG_PRINT(fmt, ...) do{\
+		imlib_printf(4,fmt"  [DEBUG:%s:%d] [%s]\n", ##__VA_ARGS__, __FILE__, __LINE__, __FUNCTION__);\
+}while(0);
+
+
+#define INFO_PRINT(fmt, ...) do{\
+		imlib_printf(3,fmt"  [INFO:%s]\n", ##__VA_ARGS__);\
+}while(0);
+
 
 #define LOG_PRINT(fmt, ...) do{\
-		imlib_printf(5,fmt"  [info:%s:%d] [%s]\n", ##__VA_ARGS__, __FILE__, __LINE__, __FUNCTION__);\
+		imlib_printf(2,fmt"  [LOG:%s] [%s]\n", ##__VA_ARGS__, __FUNCTION__);\
+}while(0);
+
+
+#define WORN_PRINT(fmt, ...) do{\
+		imlib_printf(1,fmt"  [WORN:%s:%d] [%s]\n", ##__VA_ARGS__, __FILE__, __LINE__, __FUNCTION__);\
 }while(0);
 
 
 #define ERR_PRINT(fmt, ...) do{\
-		imlib_printf(0, fmt"  [info:%s:%d] [%s]\n", ##__VA_ARGS__, __FILE__, __LINE__, __FUNCTION__);\
+		imlib_printf(0, fmt"  [ERR:%s:%d] [%s]\n", ##__VA_ARGS__, __FILE__, __LINE__, __FUNCTION__);\
 }while(0);
 
 
