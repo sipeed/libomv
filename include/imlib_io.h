@@ -17,12 +17,12 @@ void imlib_set_print_out_level(int le);
 
 
 #define INFO_PRINT(fmt, ...) do{\
-		imlib_printf(3,fmt"  [INFO:%s]\n", ##__VA_ARGS__);\
+		imlib_printf(3,fmt"  [INFO]\n", ##__VA_ARGS__);\
 }while(0);
 
 
 #define LOG_PRINT(fmt, ...) do{\
-		imlib_printf(2,fmt"  [LOG:%s] [%s]\n", ##__VA_ARGS__, __FUNCTION__);\
+		imlib_printf(2,fmt"  [LOG] [%s]\n", ##__VA_ARGS__, __FUNCTION__);\
 }while(0);
 
 

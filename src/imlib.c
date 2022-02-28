@@ -27,7 +27,6 @@ void imlib_init_all()
     #endif
     fb_alloc_init0();
     fmath_init();
-    imlib_set_print_out_level(2);
 }
 
 void imlib_deinit_all()

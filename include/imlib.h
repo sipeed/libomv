@@ -247,6 +247,15 @@ color_thresholds_list_lnk_data_t;
     (_threshold->AMin <= _a) && (_a <= _threshold->AMax) && \
     (_threshold->BMin <= _b) && (_b <= _threshold->BMax)) ^ _invert; \
 })
+#define COLOR_THRESHOLD_LAB(pixel, threshold, invert)                               \
+({\
+    __typeof__(pixel) _pixel = (pixel);                                             \
+    __typeof__(threshold) _threshold = (threshold);                                 \
+    __typeof__(invert) _invert = (invert);                                          \
+    ((_threshold->LMin <= _pixel->L) && (_pixel->L <= _threshold->LMax) &&          \
+    (_threshold->AMin <= _pixel->A) && (_pixel->A <= _threshold->AMax) &&           \
+    (_threshold->BMin <= _pixel->B) && (_pixel->B <= _threshold->BMax)) ^ _invert;  \
+})
 #define COLOR_BOUND_BINARY(pixel0, pixel1, threshold) \
 ({ \
     __typeof__ (pixel0) _pixel0 = (pixel0); \

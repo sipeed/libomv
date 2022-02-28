@@ -3,18 +3,17 @@
 #include <stdlib.h>
 #include <stdarg.h>
 
-static int _out_level;
+static int _out_level = 1;
 static char sprint_buf[1024];
 
 int imlib_printf(int level, char *fmt, ...)
 {
     va_list args;
-    int n;
+    int n = 0;
+    if (level > _out_level) return n;
     va_start(args, fmt);
     n = vsprintf(sprint_buf, fmt, args);
     va_end(args);
-    if (level > _out_level)
-        return n;
     switch (level)
     {
     case 0:
