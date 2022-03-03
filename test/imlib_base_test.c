@@ -252,7 +252,7 @@ int main()
     imlib_draw_string(img_ts, 70, 150, "nihao",     COLOR_R8_G8_B8_TO_RGB565(0x00, 0x00, 0xff), 3.0, 0, 0, 1, 0, 0, 0, 0, 0, 0);
 #endif
 // (44, 80, 10, 110, -49, 115)
-    // find_blobs(img_ts);
+    find_blobs(img_ts);
 
     // find_lines(img_ts);
 

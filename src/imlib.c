@@ -307,8 +307,8 @@ void imlib_image_destroy(image_t **obj)
     {
         if ((*obj)->is_data_alloc)
         {
-        xfree((*obj)->data);
-        (*obj)->data = NULL;
+            xfree((*obj)->data);
+            (*obj)->data = NULL;
         }
         xfree(*obj);
         *obj = NULL;

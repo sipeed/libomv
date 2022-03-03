@@ -55,3 +55,5 @@ dkms.conf
 examples/*/build
 test/tmp.*
 .vscode/settings.json
+test/tmp_img_big.bmp
+test/imlib_base_test

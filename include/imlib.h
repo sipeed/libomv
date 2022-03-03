@@ -1345,10 +1345,7 @@ void imlib_jpeg_compress_init();
 void imlib_jpeg_compress_deinit();
 void jpeg_mdma_irq_handler();
 #endif
-void jpeg_decompress_image_to_binary(image_t *dst, image_t *src);
-void jpeg_decompress_image_to_grayscale(image_t *dst, image_t *src);
-void jpeg_decompress_image_to_rgb565(image_t *dst, image_t *src);
-void jpeg_decompress_image_to_rgb888(image_t *dst, image_t *src);
+void jpeg_decompress(image_t *dst, image_t *src);
 bool jpeg_compress(image_t *src, image_t *dst, int quality, bool realloc);
 int jpeg_clean_trailing_bytes(int bpp, uint8_t *data);
 void jpeg_read_geometry(FIL *fp, image_t *img, const char *path, jpg_read_settings_t *rs);
@@ -1494,6 +1491,7 @@ void imlib_draw_image(image_t *dst_img, image_t *src_img, int dst_x_start, int d
 void imlib_flood_fill(image_t *img, int x, int y,
                       float seed_threshold, float floating_threshold,
                       int c, bool invert, bool clear_background, image_t *mask);
+void imlib_draw_cross(image_t *img, int x, int y, int c, int size, int thickness);
 // Binary Functions
 void imlib_binary(image_t *out, image_t *img, list_t *thresholds, bool invert, bool zero, image_t *mask);
 void imlib_invert(image_t *img);

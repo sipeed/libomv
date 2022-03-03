@@ -223,7 +223,11 @@ void imlib_draw_circle(image_t *img, int cx, int cy, int r, int c, int thickness
         }
     }
 }
-
+void imlib_draw_cross(image_t *img, int x, int y, int c, int size, int thickness)
+{
+    imlib_draw_line(img, x - size, y        , x + size, y        , c, thickness);
+    imlib_draw_line(img, x        , y - size, x        , y + size, c, thickness);
+}
 // https://scratch.mit.edu/projects/50039326/
 static void scratch_draw_pixel(image_t *img, int x0, int y0, int dx, int dy, float shear_dx, float shear_dy, int r0, int r1, int c)
 {
@@ -4653,7 +4657,7 @@ void imlib_draw_image(image_t *dst_img, image_t *src_img, int dst_x_start, int d
                     } else if (src_img->is_yuv) {
                         imlib_deyuv_image(&new_src_img, src_img);
                     } else if (is_jpeg) {
-                        jpeg_decompress_image_to_binary(&new_src_img, src_img);
+                        jpeg_decompress(&new_src_img, src_img);
                     } else if (is_png) {
                         png_decompress(&new_src_img, src_img);
                     }
@@ -4665,7 +4669,7 @@ void imlib_draw_image(image_t *dst_img, image_t *src_img, int dst_x_start, int d
                     } else if (src_img->is_yuv) {
                         imlib_deyuv_image(&new_src_img, src_img);
                     } else if (is_jpeg) {
-                        jpeg_decompress_image_to_grayscale(&new_src_img, src_img);
+                        jpeg_decompress(&new_src_img, src_img);
                     } else if (is_png) {
                         png_decompress(&new_src_img, src_img);
                     }
@@ -4677,7 +4681,7 @@ void imlib_draw_image(image_t *dst_img, image_t *src_img, int dst_x_start, int d
                     } else if (src_img->is_yuv) {
                         imlib_deyuv_image(&new_src_img, src_img);
                     } else if (is_jpeg) {
-                        jpeg_decompress_image_to_rgb565(&new_src_img, src_img);
+                        jpeg_decompress(&new_src_img, src_img);
                     } else if (is_png) {
                         png_decompress(&new_src_img, src_img);
                     }
@@ -4689,7 +4693,7 @@ void imlib_draw_image(image_t *dst_img, image_t *src_img, int dst_x_start, int d
                     } else if (src_img->is_yuv) {
                         imlib_deyuv_image(&new_src_img, src_img);
                     } else if (is_jpeg) {
-                        jpeg_decompress_image_to_rgb888(&new_src_img, src_img);
+                        jpeg_decompress(&new_src_img, src_img);
                     } else if (is_png) {
                         png_decompress(&new_src_img, src_img);
                     }
