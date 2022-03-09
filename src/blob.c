@@ -153,7 +153,7 @@ void imlib_find_blobs(list_t *out, image_t *ptr, rectangle_t *roi, unsigned int 
     size_t lifo_len;
     lifo_alloc_all(&lifo, &lifo_len, sizeof(xylr_t));
 
-    list_init(out, sizeof(find_blobs_list_lnk_data_t));
+    imlib_list_init(out, sizeof(find_blobs_list_lnk_data_t));
 
     size_t code = 0;
     for (list_lnk_t *it = iterator_start_from_head(thresholds); it; it = iterator_next(it)) {
@@ -1259,7 +1259,7 @@ void imlib_find_blobs(list_t *out, image_t *ptr, rectangle_t *roi, unsigned int 
             bool merge_occured = false;
 
             list_t out_temp;
-            list_init(&out_temp, sizeof(find_blobs_list_lnk_data_t));
+            imlib_list_init(&out_temp, sizeof(find_blobs_list_lnk_data_t));
 
             while(list_size(out)) {
                 find_blobs_list_lnk_data_t lnk_blob;

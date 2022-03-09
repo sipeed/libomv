@@ -298,7 +298,7 @@ void imlib_find_lines(list_t *out, image_t *ptr, rectangle_t *roi, unsigned int 
         }
     }
 
-    list_init(out, sizeof(find_lines_list_lnk_data_t));
+    imlib_list_init(out, sizeof(find_lines_list_lnk_data_t));
 
     for (int y = 1, yy = r_size - 1; y < yy; y++) {
         uint32_t *row_ptr = acc + (theta_size * y);
@@ -332,7 +332,7 @@ void imlib_find_lines(list_t *out, image_t *ptr, rectangle_t *roi, unsigned int 
         bool merge_occured = false;
 
         list_t out_temp;
-        list_init(&out_temp, sizeof(find_lines_list_lnk_data_t));
+        imlib_list_init(&out_temp, sizeof(find_lines_list_lnk_data_t));
 
         while (list_size(out)) {
             find_lines_list_lnk_data_t lnk_line;
@@ -439,7 +439,7 @@ void imlib_find_line_segments(list_t *out, image_t *ptr, rectangle_t *roi, unsig
 
     list_t temp_out;
     imlib_find_lines(&temp_out, ptr, roi, x_stride, y_stride, threshold, theta_margin, rho_margin);
-    list_init(out, sizeof(find_lines_list_lnk_data_t));
+    imlib_list_init(out, sizeof(find_lines_list_lnk_data_t));
 
     const int r_diag_len = fast_roundf(fast_sqrtf((roi->w * roi->w) + (roi->h * roi->h))) * 2;
     int *theta_buffer = fb_alloc(sizeof(int) * r_diag_len, FB_ALLOC_NO_HINT);
@@ -451,7 +451,7 @@ void imlib_find_line_segments(list_t *out, image_t *ptr, rectangle_t *roi, unsig
         list_pop_front(&temp_out, &lnk_data);
 
         list_t line_out;
-        list_init(&line_out, sizeof(find_lines_list_lnk_data_t));
+        imlib_list_init(&line_out, sizeof(find_lines_list_lnk_data_t));
 
         for (int k = -2; k <= 2; k += 2) {
             line_t l;
@@ -814,7 +814,7 @@ void imlib_find_circles(list_t *out, image_t *ptr, rectangle_t *roi, unsigned in
     //
     // Y_MAX
 
-    list_init(out, sizeof(find_circles_list_lnk_data_t));
+    imlib_list_init(out, sizeof(find_circles_list_lnk_data_t));
 
     for (int r = r_min, rr = r_max; r < rr; r += r_step) { // ignore r = 0/1
         int a_size, b_size, hough_divide = 1; // divides a and b accumulators
@@ -915,7 +915,7 @@ void imlib_find_circles(list_t *out, image_t *ptr, rectangle_t *roi, unsigned in
         bool merge_occured = false;
 
         list_t out_temp;
-        list_init(&out_temp, sizeof(find_circles_list_lnk_data_t));
+        imlib_list_init(&out_temp, sizeof(find_circles_list_lnk_data_t));
 
         while (list_size(out)) {
             find_circles_list_lnk_data_t lnk_data;

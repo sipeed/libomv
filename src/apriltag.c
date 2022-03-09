@@ -11993,7 +11993,7 @@ void imlib_find_apriltags(list_t *out, image_t *ptr, rectangle_t *roi, apriltag_
     im.buf = img.data;
 
     zarray_t *detections = apriltag_detector_detect(td, &im);
-    list_init(out, sizeof(find_apriltags_list_lnk_data_t));
+    imlib_list_init(out, sizeof(find_apriltags_list_lnk_data_t));
 
     for (int i = 0, j = zarray_size(detections); i < j; i++) {
         apriltag_detection_t *det;
@@ -12196,7 +12196,7 @@ void imlib_find_rects(list_t *out, image_t *ptr, rectangle_t *roi, uint32_t thre
         zarray_destroy(poly1);
     }
 
-    list_init(out, sizeof(find_rects_list_lnk_data_t));
+    imlib_list_init(out, sizeof(find_rects_list_lnk_data_t));
 
     const int r_diag_len = fast_roundf(fast_sqrtf((roi->w * roi->w) + (roi->h * roi->h))) * 2;
     int *theta_buffer = fb_alloc(sizeof(int) * r_diag_len, FB_ALLOC_NO_HINT);

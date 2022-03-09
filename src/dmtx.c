@@ -6335,7 +6335,7 @@ void imlib_find_datamatrices(list_t *out, image_t *ptr, rectangle_t *roi, int ef
     dmtxDecodeSetProp(decode, DmtxPropXmax, ((ptr->pixfmt == PIXFORMAT_GRAYSCALE) ? roi->x : 0) + (roi->w - 1));
     dmtxDecodeSetProp(decode, DmtxPropYmax, ((ptr->pixfmt == PIXFORMAT_GRAYSCALE) ? roi->y : 0) + (roi->h - 1));
 
-    list_init(out, sizeof(find_datamatrices_list_lnk_data_t));
+    imlib_list_init(out, sizeof(find_datamatrices_list_lnk_data_t));
 
     int max_iterations = effort;
     int current_iterations = 0;

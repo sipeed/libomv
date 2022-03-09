@@ -8745,7 +8745,7 @@ void imlib_find_barcodes(list_t *out, image_t *ptr, rectangle_t *roi)
     image.seq = 0;
     image.syms = 0;
 
-    list_init(out, sizeof(find_barcodes_list_lnk_data_t));
+    imlib_list_init(out, sizeof(find_barcodes_list_lnk_data_t));
 
     if (zbar_scan_image(scanner, &image) > 0) {
         for (const zbar_symbol_t *symbol = (image.syms) ? image.syms->head : NULL; symbol; symbol = zbar_symbol_next(symbol)) {
@@ -8819,7 +8819,7 @@ void imlib_find_barcodes(list_t *out, image_t *ptr, rectangle_t *roi)
         bool merge_occured = false;
 
         list_t out_temp;
-        list_init(&out_temp, sizeof(find_barcodes_list_lnk_data_t));
+        imlib_list_init(&out_temp, sizeof(find_barcodes_list_lnk_data_t));
 
         while (list_size(out)) {
             find_barcodes_list_lnk_data_t lnk_code;

@@ -308,7 +308,7 @@ void merge_alot(list_t *out, int threshold, int theta_threshold)
         bool merge_occured = false;
 
         list_t out_temp;
-        list_init(&out_temp, sizeof(find_lines_list_lnk_data_t));
+        imlib_list_init(&out_temp, sizeof(find_lines_list_lnk_data_t));
 
         while (list_size(out)) {
             find_lines_list_lnk_data_t lnk_line;

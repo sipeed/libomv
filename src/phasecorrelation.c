@@ -484,7 +484,7 @@ void imlib_phasecorrelate(image_t *img0, image_t *img1, rectangle_t *roi0, recta
                 for (int y = roi0->y, yy = roi0->y + roi0->h; y < yy; y++) {
                     pixel24_t *row_ptr = IMAGE_COMPUTE_RGB888_PIXEL_ROW_PTR(img0, y);
                     for (int x = roi0->x, xx = roi0->x + roi0->w; x < xx; x++) {
-                        IMAGE_PUT_RGB888_PIXEL(&img0_fixed, x, y, IMAGE_GET_RGB888_PIXEL_FAST(row_ptr, x));
+                        IMAGE_PUT_RGB888_PIXEL_(&img0_fixed, x, y, IMAGE_GET_RGB888_PIXEL_FAST_(row_ptr, x));
                     }
                 }
                 break;

@@ -2981,7 +2981,7 @@ void imlib_find_qrcodes(list_t *out, image_t *ptr, rectangle_t *roi)
     // imlib_draw_image(&img, ptr, 0, 0, 1.f, 1.f, roi, -1, 256, NULL, NULL, 0, NULL, NULL);
 
     quirc_end(controller);
-    list_init(out, sizeof(find_qrcodes_list_lnk_data_t));
+    imlib_list_init(out, sizeof(find_qrcodes_list_lnk_data_t));
 
     for (int i = 0, j = quirc_count(controller); i < j; i++) {
         struct quirc_code *code = fb_alloc(sizeof(struct quirc_code), FB_ALLOC_NO_HINT);

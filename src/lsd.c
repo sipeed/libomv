@@ -2756,7 +2756,7 @@ void imlib_lsd_find_line_segments(list_t *out, image_t *ptr, rectangle_t *roi, u
 
     int n_ls;
     float *ls = LineSegmentDetection(&n_ls, grayscale_image, roi->w, roi->h, 0.8, 0.6, 2.0, 22.5, 0.0, 0.7, 1024, NULL, NULL, NULL);
-    list_init(out, sizeof(find_lines_list_lnk_data_t));
+    imlib_list_init(out, sizeof(find_lines_list_lnk_data_t));
 
     for (int i = 0, j = n_ls; i < j; i++) {
         find_lines_list_lnk_data_t lnk_line;

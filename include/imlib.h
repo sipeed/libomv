@@ -356,14 +356,14 @@ color_thresholds_list_lnk_data_t;
     __pixel | (__pixel >> 5); \
 })
 
-#define COLOR_RGB888_TO_R8(pixel) ((pixel >> 16) & 0xff)
-#define COLOR_RGB888_TO_G8(pixel) (((pixel) >> 8) & 0xff)
-#define COLOR_RGB888_TO_B8(pixel) ((pixel) & 0xff)
+#define COLOR_RGB888_TO_R8(pixel) pixel32224(pixel).red
+#define COLOR_RGB888_TO_G8(pixel) pixel32224(pixel).green
+#define COLOR_RGB888_TO_B8(pixel) pixel32224(pixel).blue
 
 #define COLOR_R5_G6_B5_TO_RGB565(r5, g6, b5) (((r5) << 11) | ((g6) << 5) | (b5))
 #define COLOR_R8_G8_B8_TO_RGB565(r8, g8, b8) ((((r8) & 0xF8) << 8) | (((g8) & 0xFC) << 3) | ((b8) >> 3))
 
-#define COLOR_R8_G8_B8_TO_RGB888(r8, g8, b8) (((r8 << 16) | (g8 << 8) | ( b8 )) & 0x00ffffff)
+#define COLOR_R8_G8_B8_TO_RGB888(r8, g8, b8) pixel24232(((pixel24_t){.red = r8,.green = g8, .blue = b8}))
 
 #define COLOR_RGB888_TO_Y_(r8, g8, b8) ((((r8) * 38) + ((g8) * 75) + ((b8) * 15)) >> 7) // 0.299R + 0.587G + 0.114B
 
@@ -437,10 +437,6 @@ extern const int8_t lab_table[196608/2];
 #define COLOR_RGB888_TO_GRAYSCALE(pixel) COLOR_RGB888_TO_Y(pixel)
 #define COLOR_RGB888_TO_BINARY(pixel) (COLOR_RGB888_TO_Y(pixel) > (((COLOR_Y_MAX - COLOR_Y_MIN) / 2) + COLOR_Y_MIN))
 #define COLOR_RGB888_TO_RGB565(pixel) COLOR_R8_G8_B8_TO_RGB565(COLOR_RGB888_TO_R8(pixel), COLOR_RGB888_TO_G8(pixel), COLOR_RGB888_TO_B8(pixel))
-
-
-
-
 
 #define COLOR_GRAYSCALE_TO_BINARY(pixel) ((pixel) > (((COLOR_GRAYSCALE_MAX - COLOR_GRAYSCALE_MIN) / 2) + COLOR_GRAYSCALE_MIN))
 #define COLOR_GRAYSCALE_TO_RGB565(pixel) COLOR_YUV_TO_RGB565(((pixel) - 128), 0, 0)
@@ -722,6 +718,15 @@ bool image_get_mask_pixel(image_t *ptr, int x, int y);
     __typeof__ (x) _x = (x); \
     __typeof__ (y) _y = (y); \
     pixel24232(((pixel24_t *) _image->data)[(_image->w * _y) + _x]); \
+})
+
+#define IMAGE_PUT_RGB888_PIXEL_(image, x, y, v) \
+({ \
+    __typeof__ (image) _image = (image); \
+    __typeof__ (x) _x = (x); \
+    __typeof__ (y) _y = (y); \
+    __typeof__ (v) _v = (v); \
+    ((pixel24_t *) _image->data)[(_image->w * _y) + _x] = _v; \
 })
 
 #define IMAGE_PUT_RGB888_PIXEL(image, x, y, v) \
