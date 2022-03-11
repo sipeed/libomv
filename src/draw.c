@@ -4369,43 +4369,138 @@ void imlib_draw_image_rgb565(image_t *img, image_t *other, int x_off, int y_off,
         }
     }
 }
-void imlib_draw_image_rgb888(image_t *img, image_t *other, int x_off, int y_off, float x_scale, float y_scale, float alpha, image_t *mask)
+/**
+ * @brief 快速贴图融合算法,贴图与被贴图像需要相同,使用临近插值算法
+ * 
+ * @param img       被贴图像
+ * @param other     贴图图像
+ * @param x_off     x 轴起始位置
+ * @param y_off     y 轴起始位置
+ * @param x_scale   缩放系数
+ * @param y_scale   缩放系数
+ * @param alpha     贴图融合系数
+ * @param mask      掩码图像
+ */
+void imlib_draw_image_fast(image_t *img, image_t *other, int x_off, int y_off, float x_scale, float y_scale, float alpha, image_t *mask)
 {
     float over_xscale = IM_DIV(1.0, x_scale), over_yscale = IM_DIV(1.0f, y_scale);
+    int alpha_int = (int)(alpha * 2048), alpha_int_2 = 2048 - alpha_int;
+    int other_y, other_x;
 
-    for (int y = 0, yy = fast_roundf(other->h * y_scale); y < yy; y++) {
-        int other_y = fast_roundf(y * over_yscale);
+    switch (img->pixfmt)
+    {
+        case PIXFORMAT_BINARY: {
+            for (int y = 0, yy = fast_roundf(other->h * y_scale); y < yy; y++) {
+                other_y = fast_roundf(y * over_yscale);
 
-        for (int x = 0, xx = fast_roundf(other->w * x_scale); x < xx; x++) {
-            int other_x = fast_roundf(x * over_xscale);
+                for (int x = 0, xx = fast_roundf(other->w * x_scale); x < xx; x++) {
+                    other_x = fast_roundf(x * over_xscale);
 
-            if ((!mask) || image_get_mask_pixel(mask, other_x, other_y)) {
-                int pixel = imlib_get_pixel(other, other_x, other_y);
-                if(alpha == 1) {
-                    uint8_t r = COLOR_RGB888_TO_R8(pixel);
-                    uint8_t g = COLOR_RGB888_TO_G8(pixel);
-                    uint8_t b = COLOR_RGB888_TO_B8(pixel);
-                    uint16_t c = COLOR_R8_G8_B8_TO_RGB888(r>255?255:r, g>255?255:g, b>255?255:b);
-                    imlib_set_pixel(img, x_off + x, y_off + y, c);
-                } else {
-                    int pixel2=imlib_get_pixel(img, x_off + x, y_off + y);
-
-                    uint8_t t_r = COLOR_RGB888_TO_R8(pixel);
-                    uint8_t t_g = COLOR_RGB888_TO_G8(pixel);
-                    uint8_t t_b = COLOR_RGB888_TO_B8(pixel);
-
-                    float tmp = ((uint16_t)(((t_r)) | (t_g) | (t_b)) / (256.0));
-                    
-                    float t_alpha = alpha * tmp; // 0.01 ~ 0.00001
-
-                    float beta = 1 - t_alpha;
-                    uint16_t r = (uint16_t)(((float)(uint16_t)COLOR_RGB888_TO_R8(pixel)) * t_alpha + ((float)(uint16_t)COLOR_RGB888_TO_R8(pixel2)) * beta);
-                    uint16_t g = (uint16_t)(((float)(uint16_t)COLOR_RGB888_TO_G8(pixel)) * t_alpha + ((float)(uint16_t)COLOR_RGB888_TO_G8(pixel2)) * beta);
-                    uint16_t b = (uint16_t)(((float)(uint16_t)COLOR_RGB888_TO_B8(pixel)) * t_alpha + ((float)(uint16_t)COLOR_RGB888_TO_B8(pixel2)) * beta);
-                    uint32_t c = COLOR_R8_G8_B8_TO_RGB888(r > 255 ? 255 : r, g > 255 ? 255 : g, b > 255 ? 255 : b);
-                    imlib_set_pixel(img, x_off + x, y_off + y, c);
+                    if ((!mask) || image_get_mask_pixel(mask, other_x, other_y)) {
+                        uint32_t pixel_32 = IMAGE_GET_BINARY_PIXEL(other, other_x, other_y);
+                        if(alpha == 1) {
+                            if ((0 <= (x_off + x)) && ((x_off + x) < img->w) && (0 <= (y_off + y)) && ((y_off + y) < img->h)) {
+                                IMAGE_PUT_BINARY_PIXEL(img, (x_off + x), (y_off + y), pixel_32);
+                            }
+                        } else {
+                            uint32_t pixel2_32 = IMAGE_GET_BINARY_PIXEL(img, (x_off + x), (y_off + y));
+                            pixel_32 = (uint32_t)(pixel_32 * alpha_int + pixel2_32 * alpha_int_2) >> 11;
+                            pixel_32 = pixel_32 > 1024 ? COLOR_BINARY_MAX : COLOR_BINARY_MIN;
+                            if ((0 <= (x_off + x)) && ((x_off + x) < img->w) && (0 <= (y_off + y)) && ((y_off + y) < img->h)) {
+                                IMAGE_PUT_BINARY_PIXEL(img, (x_off + x), (y_off + y), pixel_32);
+                            }
+                        }
+                    }
                 }
             }
+            break;
+        }
+        case PIXFORMAT_GRAYSCALE: {
+            for (int y = 0, yy = fast_roundf(other->h * y_scale); y < yy; y++) {
+                other_y = fast_roundf(y * over_yscale);
+
+                for (int x = 0, xx = fast_roundf(other->w * x_scale); x < xx; x++) {
+                    other_x = fast_roundf(x * over_xscale);
+
+                    if ((!mask) || image_get_mask_pixel(mask, other_x, other_y)) {
+                        uint8_t pixel_8 = IMAGE_GET_GRAYSCALE_PIXEL(other, other_x, other_y);
+                        if(alpha == 1) {
+                            if ((0 <= (x_off + x)) && ((x_off + x) < img->w) && (0 <= (y_off + y)) && ((y_off + y) < img->h)) {
+                                IMAGE_PUT_GRAYSCALE_PIXEL(img, (x_off + x), (y_off + y), pixel_8);
+                            }
+                        } else {
+                            uint8_t pixel2_8 = IMAGE_GET_GRAYSCALE_PIXEL(img, (x_off + x), (y_off + y));
+                            pixel_8 = (uint32_t)(pixel_8 * alpha_int + pixel2_8 * alpha_int_2) >> 11;
+                            if ((0 <= (x_off + x)) && ((x_off + x) < img->w) && (0 <= (y_off + y)) && ((y_off + y) < img->h)) {
+                                IMAGE_PUT_GRAYSCALE_PIXEL(img, (x_off + x), (y_off + y), pixel_8);
+                            }
+                        }
+                    }
+                }
+            }
+            break;
+        }
+        case PIXFORMAT_RGB565: {
+            for (int y = 0, yy = fast_roundf(other->h * y_scale); y < yy; y++) {
+                other_y = fast_roundf(y * over_yscale);
+
+                for (int x = 0, xx = fast_roundf(other->w * x_scale); x < xx; x++) {
+                    other_x = fast_roundf(x * over_xscale);
+
+                    if ((!mask) || image_get_mask_pixel(mask, other_x, other_y)) {
+                        uint16_t pixel_16 = IMAGE_GET_RGB565_PIXEL(other, other_x, other_y);
+                        if(alpha == 1) {
+                            if ((0 <= (x_off + x)) && ((x_off + x) < img->w) && (0 <= (y_off + y)) && ((y_off + y) < img->h)) {
+                                IMAGE_PUT_RGB565_PIXEL(img, (x_off + x), (y_off + y), pixel_16);
+                            }
+                        } else {
+                            uint16_t pixel2_16 = IMAGE_GET_RGB565_PIXEL(img, (x_off + x), (y_off + y));
+
+                            uint8_t r = ((uint32_t)((uint8_t)COLOR_RGB565_TO_R8(pixel_16) * alpha_int + (uint8_t)COLOR_RGB565_TO_R8(pixel2_16) * alpha_int_2)) >> 11;
+                            uint8_t g = ((uint32_t)((uint8_t)COLOR_RGB565_TO_G8(pixel_16) * alpha_int + (uint8_t)COLOR_RGB565_TO_G8(pixel2_16) * alpha_int_2)) >> 11;
+                            uint8_t b = ((uint32_t)((uint8_t)COLOR_RGB565_TO_B8(pixel_16) * alpha_int + (uint8_t)COLOR_RGB565_TO_B8(pixel2_16) * alpha_int_2)) >> 11;
+                            
+                            pixel_16 = COLOR_R8_G8_B8_TO_RGB565(r, g, b);
+                            if ((0 <= (x_off + x)) && ((x_off + x) < img->w) && (0 <= (y_off + y)) && ((y_off + y) < img->h)) {
+                                IMAGE_PUT_RGB565_PIXEL(img, (x_off + x), (y_off + y), pixel_16);
+                            }
+                        }
+                    }
+                }
+            }
+            break;
+        }
+        case PIXFORMAT_RGB888: {
+            for (int y = 0, yy = fast_roundf(other->h * y_scale); y < yy; y++) {
+                other_y = fast_roundf(y * over_yscale);
+
+                for (int x = 0, xx = fast_roundf(other->w * x_scale); x < xx; x++) {
+                    other_x = fast_roundf(x * over_xscale);
+
+                    if ((!mask) || image_get_mask_pixel(mask, other_x, other_y)) {
+                        pixel24_t pixel_24 = IMAGE_GET_RGB888_PIXEL_(other, other_x, other_y);
+                        if(alpha == 1) {
+                            if ((0 <= (x_off + x)) && ((x_off + x) < img->w) && (0 <= (y_off + y)) && ((y_off + y) < img->h)) {
+                                IMAGE_PUT_RGB888_PIXEL_(img, (x_off + x), (y_off + y), pixel_24);
+                            }
+                        } else {
+                            pixel24_t pixel2_24 = IMAGE_GET_RGB888_PIXEL_(img, (x_off + x), (y_off + y));
+
+                            pixel_24.red    = ((uint32_t)(pixel_24.red    * alpha_int + pixel2_24.red     * alpha_int_2)) >> 11;
+                            pixel_24.green  = ((uint32_t)(pixel_24.green  * alpha_int + pixel2_24.green   * alpha_int_2)) >> 11;
+                            pixel_24.blue   = ((uint32_t)(pixel_24.blue   * alpha_int + pixel2_24.blue    * alpha_int_2)) >> 11;
+                            
+                            if ((0 <= (x_off + x)) && ((x_off + x) < img->w) && (0 <= (y_off + y)) && ((y_off + y) < img->h)) {
+                                IMAGE_PUT_RGB888_PIXEL_(img, (x_off + x), (y_off + y), pixel_24);
+                            }
+                        }
+                    }
+                }
+            }
+            break;
+        }
+        default: {
+            break;
         }
     }
 }

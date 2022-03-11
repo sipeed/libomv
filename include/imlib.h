@@ -712,6 +712,14 @@ bool image_get_mask_pixel(image_t *ptr, int x, int y);
     ((uint16_t *) _image->data)[(_image->w * _y) + _x] = _v; \
 })
 
+#define IMAGE_GET_RGB888_PIXEL_(image, x, y) \
+({ \
+    __typeof__ (image) _image = (image); \
+    __typeof__ (x) _x = (x); \
+    __typeof__ (y) _y = (y); \
+    ((pixel24_t *) _image->data)[(_image->w * _y) + _x]; \
+})
+
 #define IMAGE_GET_RGB888_PIXEL(image, x, y) \
 ({ \
     __typeof__ (image) _image = (image); \
@@ -1490,6 +1498,7 @@ void imlib_draw_circle(image_t *img, int cx, int cy, int r, int c, int thickness
 void imlib_draw_ellipse(image_t *img, int cx, int cy, int rx, int ry, int rotation, int c, int thickness, bool fill);
 void imlib_draw_string(image_t *img, int x_off, int y_off, const char *str, int c, float scale, int x_spacing, int y_spacing, bool mono_space,
                        int char_rotation, bool char_hmirror, bool char_vflip, int string_rotation, bool string_hmirror, bool string_hflip);
+void imlib_draw_image_fast(image_t *img, image_t *other, int x_off, int y_off, float x_scale, float y_scale, float alpha, image_t *mask);
 void imlib_draw_image(image_t *dst_img, image_t *src_img, int dst_x_start, int dst_y_start, float x_scale, float y_scale, rectangle_t *roi,
                       int rgb_channel, int alpha, const uint16_t *color_palette, const uint8_t *alpha_palette, image_hint_t hint,
                       imlib_draw_row_callback_t callback, void *dst_row_override);
