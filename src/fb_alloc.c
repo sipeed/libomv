@@ -178,6 +178,23 @@ void fb_alloc_init0()
     pointer = _fballoc;
 }
 
+void fb_alloc_init1(uint32_t size)
+{
+    if(NULL == _fballoc_start)
+    {
+        _fballoc_start = (char*)xalloc(size);
+        _fballoc = _fballoc_start + OMV_FB_ALLOC_SIZE - sizeof(uint32_t);
+        pointer = _fballoc;
+    }
+    else
+    {
+        _fballoc_start = (char*)xrealloc(_fballoc_start, size);
+        _fballoc = _fballoc_start + OMV_FB_ALLOC_SIZE - sizeof(uint32_t);
+        pointer = _fballoc;
+    }
+}
+
+
 void fb_alloc_close0()
 {
     xfree(_fballoc_start);
