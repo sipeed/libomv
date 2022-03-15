@@ -16,7 +16,10 @@ void find_blobs(image_t *img_ts)
     image_t *arg_img = img_ts;
 
     list_t thresholds;
+    thresholds.size = 100;
     list_init(&thresholds, sizeof(color_thresholds_list_lnk_data_t));
+
+    WORN_PRINT("list info, size:%d",thresholds.size);
 
     color_thresholds_list_lnk_data_t tmp_ct;
     tmp_ct.LMin = 44;
