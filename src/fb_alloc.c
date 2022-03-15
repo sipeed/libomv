@@ -198,6 +198,7 @@ void fb_alloc_init1(uint32_t size)
 void fb_alloc_close0()
 {
     xfree(_fballoc_start);
+    _fballoc_start = NULL;
     _fballoc = NULL;
     pointer = NULL;
 
