@@ -12,7 +12,7 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include "imlib.h"
-
+#ifdef IMLIB_ENABLE_APRILTAGS
 // Enable new code optimizations
 #define OPTIMIZED
 
@@ -12070,7 +12070,7 @@ void imlib_find_apriltags(list_t *out, image_t *ptr, rectangle_t *roi, apriltag_
     apriltag_detector_destroy(td);
     fb_free(NULL); // umm_init_x();
 }
-
+#endif
 #ifdef IMLIB_ENABLE_FIND_RECTS
 void imlib_find_rects(list_t *out, image_t *ptr, rectangle_t *roi, uint32_t threshold)
 {
@@ -12453,8 +12453,8 @@ void imlib_rotation_corr(image_t *img, float x_rotation, float y_rotation, float
 
                             if ((0 <= sourceX) && (sourceX < w) && (0 <= sourceY) && (sourceY < h)) {
                                 pixel24_t *ptr = tmp + (w * sourceY);
-                                int pixel = IMAGE_GET_RGB888_PIXEL_FAST(ptr, sourceX);
-                                IMAGE_PUT_RGB888_PIXEL_FAST(row_ptr, x, pixel);
+                                pixel24_t pixel = IMAGE_GET_RGB888_PIXEL_FAST_(ptr, sourceX);
+                                IMAGE_PUT_RGB888_PIXEL_FAST_(row_ptr, x, pixel);
                             }
                         }
                     }
@@ -12543,8 +12543,8 @@ void imlib_rotation_corr(image_t *img, float x_rotation, float y_rotation, float
 
                             if ((0 <= sourceX) && (sourceX < w) && (0 <= sourceY) && (sourceY < h)) {
                                 pixel24_t *ptr = tmp + (w * sourceY);
-                                int pixel = IMAGE_GET_RGB888_PIXEL_FAST(ptr, sourceX);
-                                IMAGE_PUT_RGB888_PIXEL_FAST(row_ptr, x, pixel);
+                                pixel24_t pixel = IMAGE_GET_RGB888_PIXEL_FAST_(ptr, sourceX);
+                                IMAGE_PUT_RGB888_PIXEL_FAST_(row_ptr, x, pixel);
                             }
                         }
                     }

@@ -67,6 +67,12 @@ int point_quadrance(point_t *ptr0, point_t *ptr1)
     return (delta_x * delta_x) + (delta_y * delta_y);
 }
 
+int point_quadrance_i(point_t *ptr0, point_t *ptr1)
+{
+    int delta_m = point_quadrance(ptr0, ptr1);
+    return (int)fast_sqrtf((float)delta_m);
+}
+
 void point_rotate(int x, int y, float r, int center_x, int center_y, int16_t *new_x, int16_t *new_y)
 {
     x -= center_x;
