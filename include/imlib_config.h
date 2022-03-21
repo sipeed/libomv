@@ -88,12 +88,17 @@ extern "C"
 
 // Enable rotation_corr()
 #if defined(IMLIB_ENABLE_APRILTAGS)
-// #define IMLIB_ENABLE_ROTATION_CORR
+#define IMLIB_ENABLE_ROTATION_CORR
 #endif
 
 // Enable phasecorrelate()
 #if defined(IMLIB_ENABLE_ROTATION_CORR)
 #define IMLIB_ENABLE_FIND_DISPLACEMENT
+#endif
+
+// Enable find_rects()
+#if defined(IMLIB_ENABLE_ROTATION_CORR)
+#define IMLIB_ENABLE_FIND_RECTS
 #endif
 
 // Enable get_similarity()
@@ -108,8 +113,6 @@ extern "C"
 // Enable find_circles()
 #define IMLIB_ENABLE_FIND_CIRCLES
 
-// Enable find_rects()
-// #define IMLIB_ENABLE_FIND_RECTS
 
 // Enable find_qrcodes() (14 KB)
 // #define IMLIB_ENABLE_QRCODES

@@ -63,6 +63,7 @@ extern "C"
 char *fb_alloc_stack_pointer();
 void fb_alloc_fail();
 void fb_alloc_init0();
+void fb_alloc_init1(uint32_t size);
 void fb_alloc_close0();
 uint32_t fb_avail();
 void fb_alloc_mark();
