@@ -3,8 +3,8 @@
 if(CONFIG_COMPONENT_IMLIB_ENABLE)
 
 list(APPEND ADD_INCLUDE "include")
-list(APPEND ADD_INCLUDE "${CMAKE_CURRENT_SOURCE_DIR}/../../examples/zhongming/main/include")
-add_definitions(-DIMLIB_CONFIG_H_FILE="costom_imlib_config.h")
+# list(APPEND ADD_INCLUDE "${CMAKE_CURRENT_SOURCE_DIR}/../../examples/zhongming/main/include")
+# add_definitions(-DIMLIB_CONFIG_H_FILE="costom_imlib_config.h")
 
 append_srcs_dir(ADD_SRCS "src")
 add_definitions("-lm")
