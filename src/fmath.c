@@ -24,7 +24,7 @@ const float __atanf_lut[4] = {
     +0.9997878412794807f     //p1
 };
 
-#if (__ARM_ARCH < 7)
+#if (__ARM_ARCH < 9)
 float OMV_ATTR_ALWAYS_INLINE fast_sqrtf(float x)
 {
     return sqrtf(x);
