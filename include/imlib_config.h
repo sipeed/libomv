@@ -82,7 +82,7 @@ extern "C"
 #define IMLIB_ENABLE_LENS_CORR
 
 // Enable find_apriltags() (64 KB)
-// #define IMLIB_ENABLE_APRILTAGS
+#define IMLIB_ENABLE_APRILTAGS
 
 // Enable fine find_apriltags() - (8-way connectivity versus 4-way connectivity)
 // #define IMLIB_ENABLE_FINE_APRILTAGS
@@ -119,14 +119,14 @@ extern "C"
 
 
 // Enable find_qrcodes() (14 KB)
-// #define IMLIB_ENABLE_QRCODES
+#define IMLIB_ENABLE_QRCODES
 
 
 // Enable find_datamatrices() (26 KB)
 #define IMLIB_ENABLE_DATAMATRICES
 
 // Enable find_barcodes() (42 KB)
-// #define IMLIB_ENABLE_BARCODES
+#define IMLIB_ENABLE_BARCODES
 
 // Enable CMSIS NN
 // #if !defined(CUBEAI)
