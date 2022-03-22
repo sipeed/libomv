@@ -8,6 +8,10 @@
  *
  * Image library configuration.
  */
+// #define IMLIB_CONFIG_H_FILE "costom_imlib_config.h"
+#ifdef IMLIB_CONFIG_H_FILE
+#include IMLIB_CONFIG_H_FILE
+#else
 #ifndef __IMLIB_CONFIG_H__
 #define __IMLIB_CONFIG_H__
 #ifdef __cplusplus
@@ -161,3 +165,4 @@ extern "C"
 }
 #endif
 #endif //__IMLIB_CONFIG_H__
+#endif
