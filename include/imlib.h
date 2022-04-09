@@ -1583,6 +1583,8 @@ void imlib_find_rects(list_t *out, image_t *ptr, rectangle_t *roi,
                       uint32_t threshold);
 // 1/2D Bar Codes
 void imlib_find_qrcodes(list_t *out, image_t *ptr, rectangle_t *roi);
+void custom_imlib_find_apriltags(list_t *out, image_t *ptr, rectangle_t *roi, apriltag_families_t families,
+                          float fx, float fy, float cx, float cy, int status);
 void imlib_find_apriltags(list_t *out, image_t *ptr, rectangle_t *roi, apriltag_families_t families,
                           float fx, float fy, float cx, float cy);
 void imlib_find_datamatrices(list_t *out, image_t *ptr, rectangle_t *roi, int effort);

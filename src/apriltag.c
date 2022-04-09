@@ -9629,7 +9629,12 @@ int quad_segment_maxima(apriltag_detector_t *td, zarray_t *cluster, struct line_
 
     // if we didn't get at least 4 maxima, we can't fit a quad.
     if (nmaxima < 4)
+    {
+        fb_free(maxima_errs);
+        fb_free(maxima);
+        fb_free(errs);
         return 0;
+    }
 
     // select only the best maxima if we have too many
     int max_nmaxima = td->qtp.max_nmaxima;
@@ -11940,7 +11945,162 @@ void apriltag_detections_destroy(zarray_t *detections)
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////
+struct custom_apriltag_data_t
+{
+    apriltag_detector_t *td;
+    image_u8_t im;
+    image_t img;
+};
+void custom_imlib_find_apriltags(list_t *out, image_t *ptr, rectangle_t *roi, apriltag_families_t families,
+                          float fx, float fy, float cx, float cy, int status)
+{
+    static struct custom_apriltag_data_t custom_apriltag_data;
+    switch (status)
+    {
+    case 1:
+    {
+        // Frame Buffer Memory Usage...
+        // -> GRAYSCALE Input Image = w*h*1
+        // -> GRAYSCALE Threhsolded Image = w*h*1
+        // -> UnionFind = w*h*2 (+w*h*1 for hash table)
+        
+        size_t resolution = roi->w * roi->h;
+        size_t fb_alloc_need = resolution * (1 + 1 + 2 + 1); // read above...
+        umm_init_x(((fb_avail() - fb_alloc_need) / resolution) * resolution);
+        custom_apriltag_data.td = apriltag_detector_create();
 
+        if (families & TAG16H5) {
+            apriltag_detector_add_family(custom_apriltag_data.td, (apriltag_family_t *) &tag16h5);
+        }
+
+        if (families & TAG25H7) {
+            apriltag_detector_add_family(custom_apriltag_data.td, (apriltag_family_t *) &tag25h7);
+        }
+
+        if (families & TAG25H9) {
+            apriltag_detector_add_family(custom_apriltag_data.td, (apriltag_family_t *) &tag25h9);
+        }
+
+        if (families & TAG36H10) {
+            apriltag_detector_add_family(custom_apriltag_data.td, (apriltag_family_t *) &tag36h10);
+        }
+
+        if (families & TAG36H11) {
+            apriltag_detector_add_family(custom_apriltag_data.td, (apriltag_family_t *) &tag36h11);
+        }
+
+        if (families & ARTOOLKIT) {
+            apriltag_detector_add_family(custom_apriltag_data.td, (apriltag_family_t *) &artoolkit);
+        }
+    }
+        break;
+    case 2:
+    {
+        custom_apriltag_data.img.w = roi->w;
+        custom_apriltag_data.img.h = roi->h;
+        custom_apriltag_data.img.pixfmt = PIXFORMAT_GRAYSCALE;
+        custom_apriltag_data.img.size = image_size(&custom_apriltag_data.img);
+        if(ptr->pixfmt == PIXFORMAT_GRAYSCALE && custom_apriltag_data.img.w == ptr->w && custom_apriltag_data.img.h == ptr->h)
+        {
+            custom_apriltag_data.img.data = ptr->data;
+        }
+        else
+        {
+            custom_apriltag_data.img.data = fb_alloc(custom_apriltag_data.img.size, FB_ALLOC_NO_HINT);
+            imlib_pixfmt_to(&custom_apriltag_data.img, ptr, roi);
+        }
+        // imlib_draw_image(&img, ptr, 0, 0, 1.f, 1.f, roi, -1, 256, NULL, NULL, 0, NULL, NULL);
+
+        custom_apriltag_data.im.width = roi->w;
+        custom_apriltag_data.im.height = roi->h;
+        custom_apriltag_data.im.stride = roi->w;
+        custom_apriltag_data.im.buf = custom_apriltag_data.img.data;
+        zarray_t *detections = apriltag_detector_detect(custom_apriltag_data.td, &custom_apriltag_data.im);
+        imlib_list_init(out, sizeof(find_apriltags_list_lnk_data_t));
+        for (int i = 0, j = zarray_size(detections); i < j; i++) {
+            apriltag_detection_t *det;
+            zarray_get(detections, i, &det);
+
+            find_apriltags_list_lnk_data_t lnk_data;
+            rectangle_init(&(lnk_data.rect), fast_roundf(det->p[0][0]) + roi->x, fast_roundf(det->p[0][1]) + roi->y, 0, 0);
+
+            for (size_t k = 1, l = (sizeof(det->p) / sizeof(det->p[0])); k < l; k++) {
+                rectangle_t temp;
+                rectangle_init(&temp, fast_roundf(det->p[k][0]) + roi->x, fast_roundf(det->p[k][1]) + roi->y, 0, 0);
+                rectangle_united(&(lnk_data.rect), &temp);
+            }
+
+            // Add corners...
+            lnk_data.corners[0].x = fast_roundf(det->p[3][0]) + roi->x; // top-left
+            lnk_data.corners[0].y = fast_roundf(det->p[3][1]) + roi->y; // top-left
+            lnk_data.corners[1].x = fast_roundf(det->p[2][0]) + roi->x; // top-right
+            lnk_data.corners[1].y = fast_roundf(det->p[2][1]) + roi->y; // top-right
+            lnk_data.corners[2].x = fast_roundf(det->p[1][0]) + roi->x; // bottom-right
+            lnk_data.corners[2].y = fast_roundf(det->p[1][1]) + roi->y; // bottom-right
+            lnk_data.corners[3].x = fast_roundf(det->p[0][0]) + roi->x; // bottom-left
+            lnk_data.corners[3].y = fast_roundf(det->p[0][1]) + roi->y; // bottom-left
+
+            lnk_data.id = det->id;
+            lnk_data.family = 0;
+
+            if(det->family == &tag16h5) {
+                lnk_data.family |= TAG16H5;
+            }
+
+            if(det->family == &tag25h7) {
+                lnk_data.family |= TAG25H7;
+            }
+
+            if(det->family == &tag25h9) {
+                lnk_data.family |= TAG25H9;
+            }
+
+            if(det->family == &tag36h10) {
+                lnk_data.family |= TAG36H10;
+            }
+
+            if(det->family == &tag36h11) {
+                lnk_data.family |= TAG36H11;
+            }
+
+            if(det->family == &artoolkit) {
+                lnk_data.family |= ARTOOLKIT;
+            }
+
+            lnk_data.hamming = det->hamming;
+            lnk_data.centroid.x = fast_roundf(det->c[0]) + roi->x;
+            lnk_data.centroid.y = fast_roundf(det->c[1]) + roi->y;
+            lnk_data.goodness = det->goodness / 255.0; // scale to [0:1]
+            lnk_data.decision_margin = det->decision_margin / 255.0; // scale to [0:1]
+
+            // matd_t *pose = homography_to_pose(det->H, -fx, fy, cx, cy);
+
+            // lnk_data.x_translation = MATD_EL(pose, 0, 3);
+            // lnk_data.y_translation = MATD_EL(pose, 1, 3);
+            // lnk_data.z_translation = MATD_EL(pose, 2, 3);
+            // lnk_data.x_rotation = fast_atan2f(MATD_EL(pose, 2, 1), MATD_EL(pose, 2, 2));
+            // lnk_data.y_rotation = fast_atan2f(-MATD_EL(pose, 2, 0), fast_sqrtf(sq(MATD_EL(pose, 2, 1)) + sq(MATD_EL(pose, 2, 2))));
+            // lnk_data.z_rotation = fast_atan2f(MATD_EL(pose, 1, 0), MATD_EL(pose, 0, 0));
+
+            // matd_destroy(pose);
+
+            list_push_back(out, &lnk_data);
+        }
+        apriltag_detections_destroy(detections);
+        if(ptr->pixfmt == PIXFORMAT_GRAYSCALE && custom_apriltag_data.img.w == ptr->w && custom_apriltag_data.img.h == ptr->h)
+            fb_free(custom_apriltag_data.img.data); // grayscale_image;
+    }
+        break;
+    case 3:
+    {
+        apriltag_detector_destroy(custom_apriltag_data.td);
+        fb_free(NULL); // umm_init_x();
+    }
+        break;
+    default:
+        break;
+    }
+}
 void imlib_find_apriltags(list_t *out, image_t *ptr, rectangle_t *roi, apriltag_families_t families,
                           float fx, float fy, float cx, float cy)
 {
