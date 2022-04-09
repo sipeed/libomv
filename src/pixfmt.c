@@ -150,7 +150,7 @@ void imlib_pixfmt_to(image_t *dst, image_t *src, rectangle_t *roi_i)
                 pixel24_t *dst_row_ptr = IMAGE_COMPUTE_RGB888_PIXEL_ROW_PTR(dst, dst_y_index);
                 for(int dst_x_index = 0, roi_x_index = roi->x; dst_x_index < dst->w; ++ dst_x_index, ++ roi_x_index){
                     int pixel = IMAGE_GET_RGB565_PIXEL_FAST(src_row_ptr, roi_x_index);
-                    pixel24_t pixel_out = {.red = COLOR_RGB565_TO_R8(pixel), .green = COLOR_RGB565_TO_G8(pixel), .blue = COLOR_RGB565_TO_R8(pixel) };
+                    pixel24_t pixel_out = {.red = COLOR_RGB565_TO_R8(pixel), .green = COLOR_RGB565_TO_G8(pixel), .blue = COLOR_RGB565_TO_B8(pixel) };
                     IMAGE_PUT_RGB888_PIXEL_FAST_(dst_row_ptr, dst_x_index, pixel_out);
                 }
             }
