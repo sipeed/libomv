@@ -178,7 +178,7 @@ void fb_alloc_init0()
     pointer = _fballoc;
 }
 
-void fb_alloc_init(uint32_t size)
+void fb_realloc_init1(uint32_t size)
 {
     if(NULL == _fballoc_start)
     {
