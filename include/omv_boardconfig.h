@@ -83,7 +83,7 @@ extern "C" {
 // #define JPEG_QUALITY_HIGH       90
 
 // FB Heap Block Size
-#define OMV_UMM_BLOCK_SIZE      256
+// #define OMV_UMM_BLOCK_SIZE      256
 
 // // Core VBAT for selftests
 // #define OMV_CORE_VBAT           "3.0"
@@ -158,7 +158,7 @@ extern "C" {
 // #define OMV_CYW43_MEMORY_OFFSET (0x90F00000)// Last Mbyte.
 
 // #define OMV_FB_SIZE             (4 * 1024 * 1024)       // FB memory: header + VGA/GS image
-#define OMV_FB_ALLOC_SIZE       (4 * 1024 * 1024)       // minimum fb alloc size
+// #define OMV_FB_ALLOC_SIZE       (4 * 1024 * 1024)       // minimum fb alloc size
 // #define OMV_STACK_SIZE          (64K)
 // #define OMV_HEAP_SIZE           (160K)
 // #define OMV_SDRAM_SIZE          (8 * 1024 * 1024) // This needs to be here for UVC firmware.

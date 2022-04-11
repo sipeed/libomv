@@ -38,14 +38,14 @@ void imlib_printf_image_info(void *img);
 
 #define IMLIB_2_MAIX(img) \
 ({\
-	libmaix_image_mode_t __tmp_mode[4] = {LIBMAIX_IMAGE_MODE_GRAY, LIBMAIX_IMAGE_MODE_GRAY, LIBMAIX_IMAGE_MODE_RGB565, LIBMAIX_IMAGE_MODE_RGB888};\
+	const libmaix_image_mode_t __tmp_mode[4] = {LIBMAIX_IMAGE_MODE_GRAY, LIBMAIX_IMAGE_MODE_GRAY, LIBMAIX_IMAGE_MODE_RGB565, LIBMAIX_IMAGE_MODE_RGB888};\
 	libmaix_image_create(img->w, img->h, __tmp_mode[img->bpp], LIBMAIX_IMAGE_LAYOUT_HWC, img->data, false);\
 })
 
 
 #define MAIX_2_IMLIB(img) \
 ({\
-	pixformat_t __tmp_mode[5] = {PIXFORMAT_GRAYSCALE, PIXFORMAT_GRAYSCALE, PIXFORMAT_GRAYSCALE, PIXFORMAT_RGB888, PIXFORMAT_RGB565};\
+	const pixformat_t __tmp_mode[5] = {PIXFORMAT_GRAYSCALE, PIXFORMAT_GRAYSCALE, PIXFORMAT_GRAYSCALE, PIXFORMAT_RGB888, PIXFORMAT_RGB565};\
 	imlib_image_create(img->width, img->height, __tmp_mode[img->mode], img->width * img->height * (__tmp_mode[img->mode] & 0xff), img->data, false);\
 })
 

@@ -23,7 +23,9 @@ const float __atanf_lut[4] = {
     +0.1555786518463281f,    //p5
     +0.9997878412794807f     //p1
 };
-
+#ifdef __ARM_ARCH
+#undef __ARM_ARCH
+#endif
 #if (__ARM_ARCH < 7)
 float OMV_ATTR_ALWAYS_INLINE fast_sqrtf(float x)
 {

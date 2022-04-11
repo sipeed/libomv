@@ -1536,7 +1536,7 @@ size_t __imlib_flood_fill_int(image_t *out, image_t *img, int x, int y,
             break;
         }
     }
-    
+
 
     lifo_free(&lifo);
 	return count;
@@ -1660,33 +1660,33 @@ size_t __imlib_flood_fill(image_t *img, int x, int y,
 static void _get_hv_pixel(image_t* img, uint16_t* h0, uint16_t* h1, \
 						uint16_t* h2, uint16_t* v0, uint16_t* v1, uint16_t* v2){
 	uint8_t* data = img->pixels;
-	uint16_t w = img->w; 
+	uint16_t w = img->w;
 	uint16_t h = img->h;
-	
+
 	uint16_t minx=w;
 	uint16_t miny=h;
 	uint16_t maxx=0;
 	uint16_t maxy=0;
 	uint16_t _h1=0; uint16_t _h2=0; uint16_t _v1=0; uint16_t _v2=0;
-	
+
 	for (int y = 0, yy = img->h; y < yy; y++) {
 		//uint32_t *row_ptr = IMAGE_COMPUTE_BINARY_PIXEL_ROW_PTR(img, y);
 		uint32_t *img_row_ptr = IMAGE_COMPUTE_BINARY_PIXEL_ROW_PTR(img, y);
 		for (int x = 0, xx = img->w; x < xx; x++) {
 			if (IMAGE_GET_BINARY_PIXEL_FAST(img_row_ptr, x) ) {
-				if(y<miny) miny=y; else if(y>maxy) maxy=y; 
+				if(y<miny) miny=y; else if(y>maxy) maxy=y;
 				if(x<minx) minx=x; else if(x>maxx) maxx=x;
 				if(y==0) _h1+=1;   else if(y==h-1) _h2+=1;
 				if(x==0) _v1+=1;   else if(x==w-1) _v2+=1;
-			} 
+			}
 		}
 	}
-	
+
 	*h0 = maxx-minx+1;
 	*v0 = maxy-miny+1;
 	*h1 = _h1; *h2 = _h2;
 	*v1 = _v1; *v2 = _v2;
-	
+
 	return;
 }
 
@@ -1695,13 +1695,13 @@ static void _get_hv_pixel(image_t* img, uint16_t* h0, uint16_t* h1, \
 #define EDGE_GATE 0.7
 void imlib_find_domain(image_t* img, image_t** dst, float edge_gate)
 {
-	if(img->pixfmt != PIXFORMAT_GRAYSCALE) 
-		imlib_printf(0, "only support grayscale pic"); 
-	
+	if(img->pixfmt != PIXFORMAT_GRAYSCALE)
+		imlib_printf(0, "only support grayscale pic");
+
 	uint16_t w = img->w;
 	uint16_t h = img->h;
 	uint8_t* pic = img->pixels;
-	
+
 	uint16_t domian_cnt[MAX_DOMAIN_CNT];
 	uint8_t p_x[MAX_DOMAIN_CNT];
 	uint8_t p_y[MAX_DOMAIN_CNT];
@@ -1711,7 +1711,7 @@ void imlib_find_domain(image_t* img, image_t** dst, float edge_gate)
 
 	uint8_t color_idx = 0;
 
-	for(int y=0; y<h; y++) { 
+	for(int y=0; y<h; y++) {
 		if(color_idx>=MAX_DOMAIN_CNT)
 			break;
 		for(int x=0; x<w; x++){
@@ -1722,11 +1722,11 @@ void imlib_find_domain(image_t* img, image_t** dst, float edge_gate)
 				p_y[color_idx] = y;
 				//printf("(%d, %d) -> %d, count=%d\r\n",x,y,color_idx+1,domian_cnt[color_idx]);
 				color_idx += 1;
-				
+
 			}
 		}
 	}
-	
+
 	int maxcnt = 0;
 	int maxidx = -1;
 	int max2cnt = 0;
@@ -1748,13 +1748,13 @@ void imlib_find_domain(image_t* img, image_t** dst, float edge_gate)
 		return ;
 	} else if (max2cnt<w+h) { //只有一块连通域, 或者第二块连通域面积过小
         image_t *out = imlib_image_create(img->w, img->h, PIXFORMAT_BINARY, NULL, NULL, true);
-        
+
 		__imlib_flood_fill_int(out, img, p_x[maxidx], p_y[maxidx], 0, 0, NULL, NULL);
         *dst = out;
 		return ;
 	} else { //有超过两块较大的连通域
 		image_t out0, out1;
-		out0.w = out1.w = img->w; 
+		out0.w = out1.w = img->w;
 		out0.h = out1.h = img->h;
 		out0.pixfmt = out1.pixfmt = PIXFORMAT_BINARY;
 		out0.data = fb_alloc0(image_size(&out0), FB_ALLOC_NO_HINT);
@@ -1799,5 +1799,5 @@ void imlib_find_domain(image_t* img, image_t** dst, float edge_gate)
 		fb_free(NULL);
         *dst = out;
 		return ;
-	}	
+	}
 }

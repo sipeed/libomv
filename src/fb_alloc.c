@@ -11,6 +11,7 @@
 #include "fb_alloc.h"
 // #include "framebuffer.h"
 #include "omv_boardconfig.h"
+#include "imlib_config.h"
 #include "xalloc.h"
 #include <stdio.h>
 #include <string.h>
@@ -177,8 +178,15 @@ void fb_alloc_init0()
     _fballoc = _fballoc_start + OMV_FB_ALLOC_SIZE - sizeof(uint32_t);
     pointer = _fballoc;
 }
-
-void fb_alloc_init1(uint32_t size)
+/**
+ * @brief fb_realloc_init1
+ * Functional description:
+ *  Reprogram the memory used by the fb_alloc module .
+ *  Previously used data is not saved !
+ * @param size 
+ *  will be alloc memory!
+ */
+void fb_realloc_init1(uint32_t size)
 {
     if(NULL == _fballoc_start)
     {
@@ -188,12 +196,12 @@ void fb_alloc_init1(uint32_t size)
     }
     else
     {
-        _fballoc_start = (char*)xrealloc(_fballoc_start, size);
+        xfree(_fballoc_start);
+        _fballoc_start = (char*)xalloc(size);
         _fballoc = _fballoc_start + size - sizeof(uint32_t);
         pointer = _fballoc;
     }
 }
-
 
 void fb_alloc_close0()
 {
