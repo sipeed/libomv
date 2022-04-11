@@ -3,11 +3,14 @@
 #include <stdlib.h>
 #include <stdarg.h>
 
+#ifndef IMLIB_DEBUG
+
 static int _out_level = 1;
-static char sprint_buf[1024];
 
 int imlib_printf(int level, char *fmt, ...)
 {
+    static char sprint_buf[1024];
+
     va_list args;
     int n = 0;
     if (level > _out_level) return n;
@@ -40,10 +43,25 @@ int imlib_printf(int level, char *fmt, ...)
     }
     return n;
 }
+
 void imlib_set_print_out_level(int le)
 {
     _out_level = le;
 }
+
+#else
+
+int imlib_printf(int level, char *fmt, ...)
+{
+
+}
+
+void imlib_set_print_out_level(int le)
+{
+
+}
+
+#endif
 
 #include "imlib.h"
 
