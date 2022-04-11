@@ -11,6 +11,7 @@
 #include "fb_alloc.h"
 // #include "framebuffer.h"
 #include "omv_boardconfig.h"
+#include "imlib_config.h"
 #include "xalloc.h"
 #include <stdio.h>
 #include <string.h>

@@ -14,6 +14,7 @@
 #include "fb_alloc.h"
 #include "umm_malloc.h"
 #include "omv_boardconfig.h"
+#include "imlib_config.h"
 #include "imlib_io.h"
 void umm_alloc_fail()
 {

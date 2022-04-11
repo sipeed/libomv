@@ -161,6 +161,12 @@ extern "C"
 
 // Enable STM32 DMA2D
 // #define IMLIB_ENABLE_DMA2D
+
+// FB Heap Block Size
+#define OMV_UMM_BLOCK_SIZE      256
+
+#define OMV_FB_ALLOC_SIZE       (4 * 1024 * 1024)       // minimum fb alloc size
+
 #ifdef __cplusplus
 }
 #endif
