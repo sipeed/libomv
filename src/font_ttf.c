@@ -228,10 +228,12 @@ void font_free()
   {
     case UTF8:
     case Unicode:
+#ifdef IMLIB_ENABLE_IMAGE_FILE_IO
         if (font_config.source == FileIn)
         {
             file_close(font_config.this);
         }
+#endif
     case GBK:
     case GB2312:
     case ASCII:

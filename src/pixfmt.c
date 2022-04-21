@@ -204,6 +204,36 @@ void imlib_pixfmt_to(image_t *dst, image_t *src, rectangle_t *roi_i)
                 }
             }
             break;
+        case PIXFORMAT_ARGB8:
+            for(int dst_y_index = 0, roi_y_index = roi->y; dst_y_index < dst->h; ++ dst_y_index, ++ roi_y_index){
+                pixel24_t *src_row_ptr = IMAGE_COMPUTE_RGB888_PIXEL_ROW_PTR(src, roi_y_index);
+                uint32_t *dst_row_ptr = IMAGE_COMPUTE_ARGB8_PIXEL_ROW_PTR(dst, dst_y_index);
+                for(int dst_x_index = 0, roi_x_index = roi->x; dst_x_index < dst->w; ++ dst_x_index, ++ roi_x_index){
+                    pixel24_t src_pixel = IMAGE_GET_RGB888_PIXEL_FAST_(src_row_ptr, roi_x_index);
+                    int pixel = COLOR_R8_G8_B8_TO_ARGB8(src_pixel.red, src_pixel.green, src_pixel.blue);
+                    IMAGE_PUT_ARGB8_PIXEL_FAST(dst_row_ptr, dst_x_index, pixel);
+                }
+            }
+            break;
+            break;
+        default:
+            break;
+        }
+        break;
+    case PIXFORMAT_ARGB8:
+        switch (dst->pixfmt)
+        {
+        case PIXFORMAT_RGB888:
+            for(int dst_y_index = 0, roi_y_index = roi->y; dst_y_index < dst->h; ++ dst_y_index, ++ roi_y_index){
+                uint32_t *src_row_ptr = IMAGE_COMPUTE_ARGB8_PIXEL_ROW_PTR(src, roi_y_index);
+                pixel24_t *dst_row_ptr = IMAGE_COMPUTE_RGB888_PIXEL_ROW_PTR(dst, dst_y_index);
+                for(int dst_x_index = 0, roi_x_index = roi->x; dst_x_index < dst->w; ++ dst_x_index, ++ roi_x_index){
+                    uint32_t src_pixel = IMAGE_GET_ARGB8_PIXEL_FAST(src_row_ptr, roi_x_index);
+                    pixel24_t pixel = pixel32224(src_pixel);
+                    IMAGE_PUT_RGB888_PIXEL_FAST_(dst_row_ptr, dst_x_index, pixel);
+                }
+            }
+            break;
         default:
             break;
         }

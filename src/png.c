@@ -128,15 +128,15 @@ unsigned lodepng_convert_cb(unsigned char* out, const unsigned char* in,
                     // RGB888 -> RGB888
                     for (int i=0; i < numpixels; i++, in += 3) {
                         pixels[i].red = in[0];
-                        pixels[i].red = in[1];
-                        pixels[i].red = in[2];
+                        pixels[i].green = in[1];
+                        pixels[i].blue = in[2];
                     }
                 } else if (mode_in->colortype == LCT_RGBA) {
                     // RGBA888 -> RGB888
                     for (int i=0; i < numpixels; i++, in += 4) {
                         pixels[i].red = in[0];
-                        pixels[i].red = in[1];
-                        pixels[i].red = in[2];
+                        pixels[i].green = in[1];
+                        pixels[i].blue = in[2];
                     }
                 } else if (mode_in->colortype == LCT_GREY && mode_in->bitdepth == 8) {
                     // GRAYSCALE -> RGB888
@@ -215,10 +215,12 @@ bool png_compress(image_t *src, image_t *dst)
             state.info_png.color.colortype = LCT_RGB;
             break;
         case PIXFORMAT_YUV_ANY:
-            mp_raise_msg_varg(&mp_type_RuntimeError, MP_ERROR_TEXT("Input format is not supported"));
+            // mp_raise_msg_varg(&mp_type_RuntimeError, MP_ERROR_TEXT("Input format is not supported"));
+            ERR_PRINT("Input format is not supported");
             break;
         case PIXFORMAT_BAYER_ANY:
-            mp_raise_msg_varg(&mp_type_RuntimeError, MP_ERROR_TEXT("Input format is not supported"));
+            // mp_raise_msg_varg(&mp_type_RuntimeError, MP_ERROR_TEXT("Input format is not supported"));
+            ERR_PRINT("Input format is not supported");
             break;
     }
 
@@ -227,7 +229,8 @@ bool png_compress(image_t *src, image_t *dst)
     unsigned error = lodepng_encode(&png_data, &png_size, src->data, src->w, src->h, &state);
     lodepng_state_cleanup(&state);
     if (error) {
-        mp_raise_msg(&mp_type_RuntimeError, (mp_rom_error_text_t) lodepng_error_text(error));
+        // mp_raise_msg(&mp_type_RuntimeError, (mp_rom_error_text_t) lodepng_error_text(error));
+        ERR_PRINT("%s", lodepng_error_text(error));
     }
 
     if (dst->data == NULL) {
@@ -239,8 +242,9 @@ bool png_compress(image_t *src, image_t *dst)
             dst->size = png_size;
             memcpy(dst->data, png_data, png_size);
         } else {
-            mp_raise_msg_varg(&mp_type_RuntimeError,
-                    MP_ERROR_TEXT("Failed to compress image in place"));
+            // mp_raise_msg_varg(&mp_type_RuntimeError,
+            //         MP_ERROR_TEXT("Failed to compress image in place"));
+            ERR_PRINT("Failed to compress image in place");
         }
         // free fb_alloc() memory used for umm_init_x().
         fb_free(NULL); // umm_init_x();
@@ -258,7 +262,7 @@ bool png_compress(image_t *src, image_t *dst)
 void png_decompress(image_t *dst, image_t *src)
 {
     #if (TIME_PNG==1)
-    mp_uint_t start = mp_hal_ticks_ms();
+    // mp_uint_t start = mp_hal_ticks_ms();
     #endif
 
     umm_init_x(fb_avail());
@@ -294,15 +298,17 @@ void png_decompress(image_t *dst, image_t *src)
     unsigned error = lodepng_decode(&png_data, (unsigned *) &dst->w, (unsigned *) &dst->h, &state, src->data, src->size);
     lodepng_state_cleanup(&state);
     if (error) {
-        mp_raise_msg(&mp_type_RuntimeError, (mp_rom_error_text_t) lodepng_error_text(error));
+        // mp_raise_msg(&mp_type_RuntimeError, (mp_rom_error_text_t) lodepng_error_text(error));
+        ERR_PRINT("%s", lodepng_error_text(error));
     }
 
     uint32_t new_img_size = image_size(dst);
     if (new_img_size <= img_size) {
         memcpy(dst->data, png_data, new_img_size);
     } else {
-        mp_raise_msg_varg(&mp_type_RuntimeError,
-                MP_ERROR_TEXT("Failed to compress image in place"));
+        // mp_raise_msg_varg(&mp_type_RuntimeError,
+        //         MP_ERROR_TEXT("Failed to compress image in place"));
+        ERR_PRINT("Failed to compress image in place");
     }
 
     // free fb_alloc() memory used for umm_init_x().

@@ -24,6 +24,14 @@ extern "C"
 // Enable Image File I/O
 #define IMLIB_ENABLE_IMAGE_FILE_IO
 
+#ifdef IMLIB_ENABLE_IMAGE_IO
+// Enable Image PNG ENCODER
+// #define IMLIB_ENABLE_PNG_ENCODER
+
+// Enable Image PNG DECODER
+// #define IMLIB_ENABLE_PNG_DECODER
+#endif
+
 // Enable LAB LUT
 //#define IMLIB_ENABLE_LAB_LUT
 

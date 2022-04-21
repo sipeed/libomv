@@ -366,6 +366,8 @@ color_thresholds_list_lnk_data_t;
 
 #define COLOR_R8_G8_B8_TO_RGB888(r8, g8, b8) pixel24232(((pixel24_t){.red = r8,.green = g8, .blue = b8}))
 
+#define COLOR_R8_G8_B8_TO_ARGB8(r8, g8, b8) COLOR_R8_G8_B8_TO_RGB888(r8, g8, b8)
+
 #define COLOR_RGB888_TO_Y_(r8, g8, b8) ((((r8) * 38) + ((g8) * 75) + ((b8) * 15)) >> 7) // 0.299R + 0.587G + 0.114B
 
 #define COLOR_RGB888_TO_Y(rgb888) COLOR_RGB888_TO_Y_(COLOR_RGB888_TO_R8(rgb888), COLOR_RGB888_TO_G8(rgb888), COLOR_RGB888_TO_B8(rgb888)) // 0.299R + 0.587G + 0.114B
@@ -629,6 +631,7 @@ void imlib_image_destroy_fb_buff(image_t **obj);
 void imlib_image_destroy(image_t **obj);
 void imlib_image_init(image_t *ptr, int w, int h, pixformat_t pixfmt, uint32_t size, void *pixels);
 void image_copy(image_t *dst, image_t *src);
+void image_clone(image_t **dst, image_t *src);
 size_t image_size(image_t *ptr);
 bool image_get_mask_pixel(image_t *ptr, int x, int y);
 
@@ -643,6 +646,9 @@ bool image_get_mask_pixel(image_t *ptr, int x, int y);
 
 #define IMAGE_RGB888_LINE_LEN(image) ((image)->w)
 #define IMAGE_RGB888_LINE_LEN_BYTES(image) (IMAGE_RGB888_LINE_LEN(image) * sizeof(pixel24_t))        
+
+#define IMAGE_ARGB8_LINE_LEN(image) ((image)->w)
+#define IMAGE_ARGB8_LINE_LEN_BYTES(image) (IMAGE_ARGB8_LINE_LEN(image) * sizeof(uint32_t))   
 
 #define IMAGE_GET_BINARY_PIXEL(image, x, y) \
 ({ \
@@ -877,6 +883,28 @@ bool image_get_mask_pixel(image_t *ptr, int x, int y);
     __typeof__ (row_ptr) _row_ptr = (row_ptr); \
     __typeof__ (x) _x = (x); \
     _row_ptr[_x]; \
+})
+
+#define IMAGE_COMPUTE_ARGB8_PIXEL_ROW_PTR(image, y) \
+({ \
+    __typeof__ (image) _image = (image); \
+    __typeof__ (y) _y = (y); \
+    ((uint32_t *) _image->data) + (_image->w * _y); \
+})
+
+#define IMAGE_GET_ARGB8_PIXEL_FAST(row_ptr, x) \
+({ \
+    __typeof__ (row_ptr) _row_ptr = (row_ptr); \
+    __typeof__ (x) _x = (x); \
+    _row_ptr[_x]; \
+})
+
+#define IMAGE_PUT_ARGB8_PIXEL_FAST(row_ptr, x, v) \
+({ \
+    __typeof__ (row_ptr) _row_ptr = (row_ptr); \
+    __typeof__ (x) _x = (x); \
+    __typeof__ (v) _v = (v); \
+    _row_ptr[_x] = _v; \
 })
 
 #define IMAGE_GET_RGB888_PIXEL_FAST(row_ptr, x) \

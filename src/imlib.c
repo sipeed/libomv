@@ -324,7 +324,11 @@ void image_copy(image_t *dst, image_t *src)
 {
     memcpy(dst, src, sizeof(image_t));
 }
-
+void image_clone(image_t **dst, image_t *src)
+{
+    image_t *tmp_img = imlib_image_create(src->w, src->h, src->pixfmt_id, src->size, NULL, true);
+    memcpy(tmp_img->data, src->data, src->size);
+}
 size_t image_size(image_t *ptr)
 {
     switch (ptr->pixfmt) {
@@ -344,6 +348,9 @@ size_t image_size(image_t *ptr)
         }
         case PIXFORMAT_RGB888: {
             return IMAGE_RGB888_LINE_LEN_BYTES(ptr) * ptr->h;
+        }
+        case PIXFORMAT_ARGB8: {
+            return IMAGE_ARGB8_LINE_LEN_BYTES(ptr) * ptr->h;
         }
         default: {
             return 0;
