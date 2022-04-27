@@ -296,7 +296,7 @@ image_t* imlib_image_create_fb_buff(int w, int h, pixformat_t pixfmt, uint32_t s
 }
 void imlib_image_destroy_fb_buff(image_t **obj)
 {
-    if (*obj)
+    if (obj)
     {
         if ((*obj)->is_data_alloc)
         {
@@ -309,7 +309,7 @@ void imlib_image_destroy_fb_buff(image_t **obj)
 }
 void imlib_image_destroy(image_t **obj)
 {
-    if (*obj)
+    if (obj)
     {
         if ((*obj)->is_data_alloc)
         {
