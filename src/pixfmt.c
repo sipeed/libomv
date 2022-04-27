@@ -209,8 +209,8 @@ void imlib_pixfmt_to(image_t *dst, image_t *src, rectangle_t *roi_i)
                 pixel24_t *src_row_ptr = IMAGE_COMPUTE_RGB888_PIXEL_ROW_PTR(src, roi_y_index);
                 uint32_t *dst_row_ptr = IMAGE_COMPUTE_ARGB8_PIXEL_ROW_PTR(dst, dst_y_index);
                 for(int dst_x_index = 0, roi_x_index = roi->x; dst_x_index < dst->w; ++ dst_x_index, ++ roi_x_index){
-                    uint32_t pixel = IMAGE_GET_RGB888_PIXEL_FAST(src_row_ptr, roi_x_index);
-                    pixel |= 0xff000000;
+                    pixel24_t src_pixel = IMAGE_GET_RGB888_PIXEL_FAST_(src_row_ptr, roi_x_index);
+                    uint32_t pixel = 0xff000000 | src_pixel.red << 16 | src_pixel.green << 8 | src_pixel.blue;
                     IMAGE_PUT_ARGB8_PIXEL_FAST(dst_row_ptr, dst_x_index, pixel);
                 }
             }
