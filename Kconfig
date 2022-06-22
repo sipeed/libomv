@@ -1,6 +1,0 @@
-
-config COMPONENT_IMLIB_ENABLE
-    bool "Enable imlib component"
-    default y
-    help
-        Select this option to enable use imlib.
